@@ -47,6 +47,31 @@ class ContractAbisModel extends ModelBase {
 
     return formattedData;
   }
+
+   /**
+   * This method gets the row for an array of signatures.
+   * 
+   * @param {Array<string>} signatures
+   * 
+   * @returns {Promise<Map<String, ContractAbisModel>>}
+   */
+   async fetchBySignatures(signatures) {
+    const oThis = this;
+
+    const response = {};
+
+    const dbRows = await oThis
+      .select("*")
+      .where({ signature: signatures })
+      .fire();
+
+      for (let index = 0; index < dbRows.length; index++) {
+        const formatDbRow = oThis.formatDbData(dbRows[index]);
+        response[formatDbRow.signature] = formatDbRow;
+      }
+
+    return response;
+  }
 }
 
 module.exports = ContractAbisModel;

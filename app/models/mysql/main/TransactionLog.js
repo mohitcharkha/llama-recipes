@@ -82,6 +82,44 @@ class TransactionLogModel extends ModelBase {
   }
 
   /**
+   * This method gets the row for the txHash.
+   * 
+   * @param {string} txHash
+   * 
+   * @returns {Promise<TransactionLogModel>}
+   */
+  async fetchByTxHash(txHash) {
+    const oThis = this;
+
+    const dbRows = await oThis
+      .select("*")
+      .where({ tx_hash: txHash })
+      .fire();
+
+    if (dbRows.length === 0) {
+      return {};
+    }
+
+    return oThis.formatDbData(dbRows[0]);
+  }
+
+    /**
+   * This method updates the row by id.
+   * 
+   * @param {integer} id
+   * 
+   * @returns {Promise<void>}
+   */
+    async updateById(id, updateParams) {
+      const oThis = this;
+
+      await oThis
+        .update(updateParams)
+        .where({ id: id })
+        .fire();
+    }
+
+  /**
    * This method inserts bulk entry in the table.
    *
    * @param {object} insertColumns
