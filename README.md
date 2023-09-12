@@ -35,3 +35,11 @@ node db/seed.js
 ```bash
 node db/migrate.js
 ```
+
+## Run Scripts in Following Order
+```bash
+ node onetimer/populateEtherScanTransactions.js
+ node onetimer/populateTransactionsLogs.js
+ node onetimer/decodeTransactionsLogs.js
+ node onetimer/populateHighlightedEvent.js
+ ```
