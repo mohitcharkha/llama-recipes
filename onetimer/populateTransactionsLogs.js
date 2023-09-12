@@ -72,8 +72,8 @@ class PopulateTransactionsLogs {
         txLogsArray.push([
           transactionHash,
           blockNumber,
-          transactionLogsData,
-          transactionInfoData,
+          JSON.stringify(transactionLogsData || {}),
+          JSON.stringify(transactionInfoData || {}),
           transactionLogsConstants.pendingDecodeStatus,
           status,
         ]);
