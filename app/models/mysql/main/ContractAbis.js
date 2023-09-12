@@ -48,14 +48,14 @@ class ContractAbisModel extends ModelBase {
     return formattedData;
   }
 
-   /**
+  /**
    * This method gets the row for an array of signatures.
    * 
    * @param {Array<string>} signatures
    * 
    * @returns {Promise<Map<String, ContractAbisModel>>}
    */
-   async fetchBySignatures(signatures) {
+  async fetchBySignatures(signatures) {
     const oThis = this;
 
     const response = {};
@@ -71,6 +71,13 @@ class ContractAbisModel extends ModelBase {
       }
 
     return response;
+  }
+
+   
+  async insertRecords(insertColumns, insertValues) {
+    const oThis = this;
+
+    return oThis.insertMultiple(insertColumns, insertValues).fire();
   }
 }
 

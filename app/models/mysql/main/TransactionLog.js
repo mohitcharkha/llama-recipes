@@ -155,6 +155,26 @@ class TransactionLogModel extends ModelBase {
     const oThis = this;
     return oThis.insertMultiple(insertColumns, insertValues).fire();
   }
+
+  async fetchTransactionLogsByPageFromDb(pageNo) {
+    const oThis = this;
+    let offset = (pageNo - 1) * 5;
+
+    const response = []
+
+    let dbRows = await oThis
+      .select('*')
+      .offset(offset)
+      .limit(5)
+      .fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }
 }
 
 module.exports = TransactionLogModel;
