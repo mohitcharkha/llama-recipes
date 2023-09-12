@@ -83,6 +83,26 @@ class TransactionLogModel extends ModelBase {
     return response;
   }
 
+  async getPaginatedTxHash(limit, offset) {
+    const oThis = this;
+
+    const txHashes = [];
+
+    const dbRows = await oThis
+      .select("tx_hash")
+      .where({ status: "SUCCESS" })
+      .limit(limit)
+      .offset(offset)
+      .fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const txHash = dbRows[index].tx_hash;
+      txHashes.push(txHash);
+    }
+
+    return txHashes;
+  }
+
   /**
    * This method gets the row for the txHash.
    * 
