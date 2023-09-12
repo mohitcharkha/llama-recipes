@@ -37,6 +37,7 @@ class TransactionLogModel extends ModelBase {
    * @param {string} dbRow.decode_status
    * @param {string} dbRow.decoded_events
    * @param {string} dbRow.decoded_input
+   * @param {string} dbRow.status
    *
    * @returns {object}
    */
@@ -51,6 +52,7 @@ class TransactionLogModel extends ModelBase {
       decodeStatus: dbRow.decode_status,
       decodedEvents: JSON.parse(dbRow.decoded_events),
       decodedInput: JSON.parse(dbRow.decoded_input),
+      status: dbRow.status,
     };
 
     return formattedData;

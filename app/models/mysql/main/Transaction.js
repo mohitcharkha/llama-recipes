@@ -1,6 +1,6 @@
-const rootPrefix = '../../../..',
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  databaseConstants = require(rootPrefix + '/lib/globalConstant/database');
+const rootPrefix = "../../../..",
+  ModelBase = require(rootPrefix + "/app/models/mysql/Base"),
+  databaseConstants = require(rootPrefix + "/lib/globalConstant/database");
 
 // Declare variables.
 const dbName = databaseConstants.mainDbName;
@@ -23,7 +23,7 @@ class TransactionModel extends ModelBase {
 
     const oThis = this;
 
-    oThis.tableName = 'transactions';
+    oThis.tableName = "transactions";
   }
 
   /**
@@ -39,7 +39,8 @@ class TransactionModel extends ModelBase {
    * @param {string} dbRow.input
    * @param {string} dbRow.type
    * @param {string} dbRow.highlighted_events
-   * 
+   * @param {number} dbRow.block_number
+   *
    *
    * @returns {object}
    */
@@ -55,7 +56,8 @@ class TransactionModel extends ModelBase {
       value: dbRow.value,
       input: dbRow.input,
       type: dbRow.type,
-      highlightedEvents: JSON.parse(dbRow.highlighted_events)
+      highlightedEvents: JSON.parse(dbRow.highlighted_events),
+      blockNumber: dbRow.block_number,
     };
 
     return formattedData;
@@ -74,7 +76,7 @@ class TransactionModel extends ModelBase {
     const response = {};
 
     const dbRows = await oThis
-      .select('*')
+      .select("*")
       .where({ id: ids })
       .fire();
 
@@ -88,39 +90,75 @@ class TransactionModel extends ModelBase {
 
   /**
    * This method gets the transactions in a blockNumbe.
-   *  
+   *
    * @param {integer} blockNumber
-   * 
+   *
    * @returns {Promise<Map>}
-   *  
+   *
    */
   async getTransactionsByBlockNumber(blockNumber) {
     const oThis = this;
     const response = [];
     const dbRows = await oThis
-      .select('*')
+      .select("*")
       .where({ block_number: blockNumber })
       .where(['input != "0x"'])
-      .where(['highlighted_events IS NULL'])
-      .where(['id > 2167'])
+      .where(["highlighted_events IS NULL"])
+      .where(["id > 2167"])
       .fire();
 
-      // 
+    //
 
-      for (let index = 0; index < dbRows.length; index++) {
-        const formatDbRow = oThis.formatDbData(dbRows[index]);
-        response.push(formatDbRow);
-      }
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
 
     return response;
+  }
+
+  /**
+   * Get max and min block number.
+   *
+   * @returns {Promise<Map>}
+   */
+  async getMaxAndMinBlockNumber() {
+    const oThis = this;
+    const dbRows = await oThis
+      .select(
+        "MAX(block_number) as maxBlockNumber, MIN(block_number) as minBlockNumber"
+      )
+      .fire();
+
+    return dbRows[0];
   }
 
   async updateHighlightedEvents(id, highlightedEvents) {
     const oThis = this;
     await oThis
-      .update({ highlighted_events: JSON.stringify(highlightedEvents)})
+      .update({ highlighted_events: JSON.stringify(highlightedEvents) })
       .where({ id: id })
       .fire();
+  }
+
+  /**
+   * This method gets the all valid transactions.
+   *
+   * @returns {Promise<Map>}
+   */
+  async fetchAllValidTransactions() {
+    const oThis = this;
+    const response = [];
+    const dbRows = await oThis
+      .select("*")
+      .where(['input != "0x"'])
+      .fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+    return response;
   }
 
   /**
@@ -133,9 +171,8 @@ class TransactionModel extends ModelBase {
    */
   async insertRecords(insertColumns, insertValues) {
     const oThis = this;
-    return oThis.insertMultiple(insertColumns, insertValues,).fire();
+    return oThis.insertMultiple(insertColumns, insertValues).fire();
   }
-
 }
 
 module.exports = TransactionModel;
