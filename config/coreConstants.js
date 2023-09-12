@@ -7,6 +7,10 @@
  */
 class CoreConstants {
 
+  get etherscanApiKey() {
+    return process.env.ETHERSCAN_API_KEY;
+  }
+
   get dbSuffix() {
     return process.env.A_DB_SUFFIX;
   }

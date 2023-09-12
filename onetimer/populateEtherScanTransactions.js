@@ -11,10 +11,11 @@
 const rootPrefix = '..',
   httpRequest = require(rootPrefix + '/lib/HttpRequest'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   TransactionModel = require(rootPrefix + '/app/models/mysql/main/Transaction');
 
 const API_ENDPOINT = "https://api.etherscan.io/api";
-const API_KEY = "13EBRBPKA3UXWBXUEPYZG33N4FC8XGYKYB";
+const API_KEY = coreConstants.etherscanApiKey;
 
 const start_block = 17712420; // 17700000 
 const end_block = 18112532; // example block
