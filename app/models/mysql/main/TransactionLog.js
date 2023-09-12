@@ -1,5 +1,7 @@
 const rootPrefix = "../../../..",
   ModelBase = require(rootPrefix + "/app/models/mysql/Base"),
+  transactionLogsConstants = require(rootPrefix +
+    "/lib/globalConstant/transactionLogs"),
   databaseConstants = require(rootPrefix + "/lib/globalConstant/database");
 
 // Declare variables.
@@ -90,7 +92,7 @@ class TransactionLogModel extends ModelBase {
 
     const dbRows = await oThis
       .select("tx_hash")
-      .where({ status: "SUCCESS" })
+      .where({ status: transactionLogsConstants.successStatus })
       .limit(limit)
       .offset(offset)
       .fire();
