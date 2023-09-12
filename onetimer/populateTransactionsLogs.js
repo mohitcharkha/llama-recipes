@@ -65,7 +65,7 @@ class PopulateTransactionsLogs {
 
         // append different status for empty and non-empty transaction logs/info data
         const status =
-          transactionLogsData["items"].length === 0 || !transactionInfoData.hash
+        !transactionLogsData["items"] || transactionLogsData["items"].length === 0 || !transactionInfoData.hash
             ? transactionLogsConstants.failedStatus
             : transactionLogsConstants.successStatus;  
 
