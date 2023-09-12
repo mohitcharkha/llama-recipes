@@ -65,9 +65,9 @@ class PopulateTransactionsLogs {
 
         // append different status for empty and non-empty transaction logs/info data
         const status =
-          transactionLogsData.length === 0 || transactionInfoData.hash !== transactionHash
+          transactionLogsData["items"].length === 0 || !transactionInfoData.hash
             ? transactionLogsConstants.failedStatus
-            : transactionLogsConstants.successStatus;
+            : transactionLogsConstants.successStatus;  
 
         txLogsArray.push([
           transactionHash,
@@ -111,7 +111,7 @@ class PopulateTransactionsLogs {
       return [];
     }
 
-    return response.data.responseData;
+    return JSON.parse(response.data.responseData);
   }
 
   /**
@@ -133,7 +133,7 @@ class PopulateTransactionsLogs {
         return {};
       }
   
-      return response.data.responseData;
+      return JSON.parse(response.data.responseData);
     }
 
 }
