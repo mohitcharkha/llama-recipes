@@ -1,0 +1,41 @@
+{
+  "name": "node-js-api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "generate-openapi-docs": "node ./documentation/openapi/generate.js",
+    "start-dev": "source ./set_env_vars.sh ; npm start",
+    "pre-commit": "lint-staged"
+  },
+  "dependencies": {
+    "@moxiedotxyz/base": "1.0.0",
+    "axios": "^1.5.0",
+    "cheerio": "^1.0.0-rc.12",
+    "commander": "7.1.0",
+    "crypto": "^1.0.1",
+    "csv-writer": "^1.6.0",
+    "html-entities": "2.1.0",
+    "js-base64": "3.7.2",
+    "js-sha3": "^0.9.1",
+    "moment-timezone": "0.5.33",
+    "mysql": "2.18.1",
+    "qs": "^6.11.2",
+    "sanitize-html": "2.3.2"
+  },
+  "devDependencies": {
+    "lint-staged": "10.5.4",
+    "parse-function": "^5.6.10",
+    "pre-commit": "1.2.2",
+    "prettier": "1.13.7"
+  },
+  "pre-commit": [
+    "pre-commit"
+  ],
+  "lint-staged": {
+    "*.js": [
+      "prettier --write --config .prettierrc.json",
+      "git add"
+    ]
+  }
+}
