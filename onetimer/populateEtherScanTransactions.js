@@ -17,8 +17,8 @@ const rootPrefix = '..',
 const API_ENDPOINT = "https://api.etherscan.io/api";
 const API_KEY = coreConstants.etherscanApiKey;
 
-const start_block = 17712420; // 17700000 
-const end_block = 18112532; // example block
+const start_block = 17700000; // 17700000 
+const end_block = 17700100; // example block
 
 
 class PopulateTransactionsFromEtherscan {

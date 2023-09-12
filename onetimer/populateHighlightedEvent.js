@@ -15,8 +15,8 @@ const rootPrefix = '..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   TransactionModel = require(rootPrefix + '/app/models/mysql/main/Transaction');
 
-const startBlock = 17700015; // 17700000 
-const endBlock = 17780001; // example block
+const startBlock = 17700000; // 17700000 
+const endBlock = 17700015; // example block
 
 
 class PopulateHighlightedEvent {

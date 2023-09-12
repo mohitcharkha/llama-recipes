@@ -104,7 +104,6 @@ class TransactionModel extends ModelBase {
       .where({ block_number: blockNumber })
       .where(['input != "0x"'])
       .where(["highlighted_events IS NULL"])
-      .where(["id > 2167"])
       .fire();
 
     //

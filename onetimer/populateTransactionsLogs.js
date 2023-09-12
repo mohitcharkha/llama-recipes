@@ -28,47 +28,15 @@ class PopulateTransactionsLogs {
     // Fetch all valid transactions
     console.log("Fetching all valid transactions....");
     let transactionObj = new TransactionModel();
-    const transactions = await transactionObj.fetchAllValidTransactions();
     const blockNumbersData = await transactionObj.getMaxAndMinBlockNumber();
     const startBlockNumber = blockNumbersData.minBlockNumber;
     const endBlockNumber = blockNumbersData.maxBlockNumber;
 
-    console.log("Total transactions fetched: ", transactions.length);
 
-    let txLogsArray = [];
-
-    for (let i = 0; i < transactions.length; i++) {
-      const transaction = transactions[i];
-      const transactionHash = transaction.txHash;
-      const blockNumber = transaction.blockNumber;
-
-      console.log(
-        "Fetching transaction logs for transactionHash: ",
-        transactionHash
-      );
-      const transactionLogsData = await this.fetchTransactionLogs(
-        transactionHash
-      );
-
-      txLogsArray.push([
-        transactionHash,
-        blockNumber,
-        transactionLogsData,
-        transactionLogsConstants.pendingStatus,
-      ]);
-    }
-
-    let transactionLogObj = new TransactionLogModel();
-
-    console.log("Inserting transaction logs in DB....");
-    await transactionLogObj.insertRecords(
-      ["tx_hash", "block_number", "data", "decode_status"],
-      txLogsArray
-    );
 
     let currentBlockNumber = startBlockNumber;
 
-    while (currentBlockNumber < endBlockNumber) {
+    while (currentBlockNumber <= endBlockNumber) {
       console.log("Current block number: ", currentBlockNumber);
       let transactionObj = new TransactionModel();
       let transactions = await transactionObj.getTransactionsByBlockNumber(
@@ -91,9 +59,13 @@ class PopulateTransactionsLogs {
           transactionHash
         );
 
-        // append different status for empty and non-empty transaction logs data
+        const transactionInfoData = await this.fetchTransactionInfo(
+          transactionHash
+        );
+
+        // append different status for empty and non-empty transaction logs/info data
         const status =
-          transactionLogsData.length === 0
+          transactionLogsData.length === 0 || transactionInfoData.hash !== transactionHash
             ? transactionLogsConstants.failedStatus
             : transactionLogsConstants.successStatus;
 
@@ -101,6 +73,7 @@ class PopulateTransactionsLogs {
           transactionHash,
           blockNumber,
           transactionLogsData,
+          transactionInfoData,
           transactionLogsConstants.pendingDecodeStatus,
           status,
         ]);
@@ -110,7 +83,7 @@ class PopulateTransactionsLogs {
 
       console.log("Inserting transaction logs in DB....");
       await transactionLogObj.insertRecords(
-        ["tx_hash", "block_number", "data", "decode_status", "status"],
+        ["tx_hash", "block_number", "data", "info_data", "decode_status", "status"],
         txLogsArray
       );
       currentBlockNumber++;
@@ -130,15 +103,39 @@ class PopulateTransactionsLogs {
 
     const response = await req.get();
 
-    await basicHelper.sleep(200);
+    // console.log('response: ', response);
+    await basicHelper.sleep(50);
 
-    if (response.data.statusCode !== 200) {
-      console.error("Error in fetching transaction logs for txHash: ", txHash);
+    if (response.data.response.status !== 200) {
+      console.error("Error in fetching transaction logs for txHash: ", transactionHash);
       return [];
     }
 
     return response.data.responseData;
   }
+
+  /**
+   * Fetch transaction info from blockscout
+   *
+   * @param {string} transactionHash
+   * @returns {Promise<*>}
+   */
+    async fetchTransactionInfo(transactionHash) {
+      const endpoint = BASE_ENDPOINT + `transactions/${transactionHash}`;
+      let req = new httpRequest({ resource: endpoint, header: {} });
+  
+      const response = await req.get();
+  
+      await basicHelper.sleep(50);
+  
+      if (response.data.response.status !== 200) {
+        console.error("Error in fetching transaction info for txHash: ", transactionHash);
+        return {};
+      }
+  
+      return response.data.responseData;
+    }
+
 }
 
 const populateTransactionLogs = new PopulateTransactionsLogs();
