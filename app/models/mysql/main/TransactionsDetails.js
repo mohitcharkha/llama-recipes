@@ -46,10 +46,10 @@ class TransactionsDetailsModel extends ModelBase {
       data: JSON.parse(dbRow.data),
       logsData: JSON.parse(dbRow.logs_data),
       highlightedEventStatus: dbRow.highlighted_event_status,
-      highlightedEventHtml: JSON.parse(dbRow.highlighted_event_html),
+      highlightedEventHtml: dbRow.highlighted_event_html,
       highlightedEventTexts: JSON.parse(dbRow.highlighted_event_texts),
       highlightedEventContractAddress: dbRow.highlighted_event_contract_address,
-      highlightedEventMethodName: JSON.parse(dbRow.highlighted_event_method_name),
+      highlightedEventMethodName: dbRow.highlighted_event_method_name,
     };
 
     return formattedData;

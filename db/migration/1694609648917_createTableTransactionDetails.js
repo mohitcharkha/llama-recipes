@@ -18,7 +18,9 @@ const upQueries = [
     '  `created_at` int(11) NOT NULL, \n' +
     '  `updated_at` int(11) NOT NULL, \n' +
     '  PRIMARY KEY (`id`), \n' +
-    '  UNIQUE KEY `uk_tx_hash` (`transaction_hash`) \n' +
+    '  UNIQUE KEY `uk_tx_hash` (`transaction_hash`), \n' +
+    '  KEY `idx_1` (`status`), \n' +
+    '  KEY `idx_2` (`highlighted_event_status`) \n' +
     ') ENGINE=InnoDB AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;'
 ];
 
