@@ -88,33 +88,7 @@ class TransactionModel extends ModelBase {
     return response;
   }
 
-  /**
-   * This method gets the transactions in a blockNumbe.
-   *
-   * @param {integer} blockNumber
-   *
-   * @returns {Promise<Map>}
-   *
-   */
-  async getTransactionsByBlockNumber(blockNumber) {
-    const oThis = this;
-    const response = [];
-    const dbRows = await oThis
-      .select("*")
-      .where({ block_number: blockNumber })
-      .where(['input != "0x"'])
-      .where(["highlighted_events IS NULL"])
-      .fire();
 
-    //
-
-    for (let index = 0; index < dbRows.length; index++) {
-      const formatDbRow = oThis.formatDbData(dbRows[index]);
-      response.push(formatDbRow);
-    }
-
-    return response;
-  }
 
   /**
    * Get max and min block number.
@@ -172,6 +146,80 @@ class TransactionModel extends ModelBase {
     const oThis = this;
     return oThis.insertMultiple(insertColumns, insertValues).fire();
   }
+
+   /**
+   * This method gets the transactions in a blockNumbe.
+   *
+   * @param {integer} blockNumber
+   *
+   * @returns {Promise<Map>}
+   *
+   */
+   async getTransactionDetailsWithoutData(blockNumber) {
+    const oThis = this;
+    const response = [];
+    const dbRows = await oThis
+      .select("*")
+      .where({ block_number: blockNumber })
+      .where(['input != "0x"'])
+      .where(["data IS NULL"])
+      .fire();
+
+    //
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }
+
+  /**
+   * This method gets the transactions in a blockNumbe.
+   *
+   * @param {integer} blockNumber
+   *
+   * @returns {Promise<Map>}
+   *
+   */
+    async getTransactionsByBlockNumber(blockNumber) {
+      const oThis = this;
+      const response = [];
+      const dbRows = await oThis
+        .select("*")
+        .where({ block_number: blockNumber })
+        .where(['input != "0x"'])
+        .where(["highlighted_events IS NULL"])
+        .fire();
+  
+      //
+  
+      for (let index = 0; index < dbRows.length; index++) {
+        const formatDbRow = oThis.formatDbData(dbRows[index]);
+        response.push(formatDbRow);
+      }
+  
+      return response;
+    }
+
+    /**
+   * Get max and min block number.
+   *
+   * @returns {Promise<Map>}
+   */
+    async getMaxAndMinBlockNumberWithoutLogs() {
+      const oThis = this;
+      const dbRows = await oThis
+        .select(
+          "MAX(block_number) as maxBlockNumber, MIN(block_number) as minBlockNumber"
+        )
+        .where(["data IS NULL"])
+        .fire();
+  
+      return dbRows[0];
+    }
+
 }
 
 module.exports = TransactionModel;

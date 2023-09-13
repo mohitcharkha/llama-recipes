@@ -4,88 +4,75 @@
  *
  * Populate transaction logs from etherscan
  *
- * Usage: node onetimer/populateTransactionsLogs.js
+ * Usage: node onetimer/populateTransactionsDataFromBlockscout.js
  *
  */
 
 const rootPrefix = "..",
   httpRequest = require(rootPrefix + "/lib/HttpRequest"),
   basicHelper = require(rootPrefix + "/helpers/basic"),
-  TransactionModel = require(rootPrefix + "/app/models/mysql/main/Transaction"),
+  TransactionDetailModel = require(rootPrefix + "/app/models/mysql/main/TransactionsDetails"),
   TransactionLogModel = require(rootPrefix +
     "/app/models/mysql/main/TransactionLog"),
-  transactionLogsConstants = require(rootPrefix +
-    "/lib/globalConstant/transactionLogs");
+  transactionDetailsConstants = require(rootPrefix +
+    "/lib/globalConstant/transactionDetails");
 
 const BASE_ENDPOINT = "https://eth.blockscout.com/api/v2/";
 
-class PopulateTransactionsLogs {
+class PopulateTransactionsDataFromBlockscout {
   constructor() {}
 
   async perform() {
     console.log("Start Perform");
-
+    let transactionDetailObj = new TransactionDetailModel();
+    
     // Fetch all valid transactions
     console.log("Fetching all valid transactions....");
-    let transactionObj = new TransactionModel();
-    const blockNumbersData = await transactionObj.getMaxAndMinBlockNumber();
+
+    const blockNumbersData = await transactionDetailObj.getMaxAndMinBlockNumberWithoutLogs();
     const startBlockNumber = blockNumbersData.minBlockNumber;
     const endBlockNumber = blockNumbersData.maxBlockNumber;
-
-
 
     let currentBlockNumber = startBlockNumber;
 
     while (currentBlockNumber <= endBlockNumber) {
       console.log("Current block number: ", currentBlockNumber);
-      let transactionObj = new TransactionModel();
-      let transactions = await transactionObj.getTransactionsByBlockNumber(
+      let transactionDetailObj = new TransactionDetailModel();
+      let transactionDetails = await transactionDetailObj.getRowsByBlockNumber(
         currentBlockNumber
       );
 
-      let txLogsArray = [];
+      for (let i = 0; i < transactionDetails.length; i++) {
+        const transactionDetail = transactionDetails[i];
+        const transactionHash = transactionDetail.transactionHash;
 
-      for (let i = 0; i < transactions.length; i++) {
-        const transaction = transactions[i];
-        const transactionHash = transaction.txHash;
-        const blockNumber = transaction.blockNumber;
+        console.log("Fetching transaction logs for transactionHash: ",transactionHash);
 
-        console.log(
-          "Fetching transaction logs for transactionHash: ",
-          transactionHash
-        );
-
-        const transactionLogsData = await this.fetchTransactionLogs(
-          transactionHash
-        );
-
-        const transactionInfoData = await this.fetchTransactionInfo(
-          transactionHash
-        );
+        const transactionLogsData = await this.fetchTransactionLogs(transactionHash);
+        const transactionInfoData = await this.fetchTransactionInfo(transactionHash);
 
         // append different status for empty and non-empty transaction logs/info data
-        const status =
-        !transactionLogsData["items"] || transactionLogsData["items"].length === 0 || !transactionInfoData.hash
-            ? transactionLogsConstants.failedStatus
-            : transactionLogsConstants.successStatus;  
+        let status =
+       !transactionInfoData.hash
+            ? transactionDetailsConstants.failedStatus
+            : transactionDetailsConstants.successStatus;  
 
-        txLogsArray.push([
-          transactionHash,
-          blockNumber,
-          JSON.stringify(transactionLogsData || {}),
-          JSON.stringify(transactionInfoData || {}),
-          transactionLogsConstants.pendingDecodeStatus,
-          status,
-        ]);
+        if (transactionInfoData.raw_input == '0x') {
+          status = transactionDetailsConstants.ignoreStatus;  
+        }
+
+      console.log("Update transaction details in DB....");
+      let transactionDetailObj = new TransactionLogModel();
+      await transactionDetailObj.updateById( oThis.transaction.id,
+        {
+          data:  JSON.stringify(transactionInfoData || {}),
+          logs_data:  JSON.stringify(transactionLogsData || {}),
+          highlighted_event_status: "pending",
+          status: status
+        }
+      );
       }
 
-      let transactionLogObj = new TransactionLogModel();
-
-      console.log("Inserting transaction logs in DB....");
-      await transactionLogObj.insertRecords(
-        ["tx_hash", "block_number", "data", "info_data", "decode_status", "status"],
-        txLogsArray
-      );
       currentBlockNumber++;
     }
     console.log("End Perform");
@@ -108,7 +95,7 @@ class PopulateTransactionsLogs {
 
     if (response.data.response.status !== 200) {
       console.error("Error in fetching transaction logs for txHash: ", transactionHash);
-      return [];
+      return Promise.reject(response.data);
     }
 
     return JSON.parse(response.data.responseData);
@@ -130,7 +117,7 @@ class PopulateTransactionsLogs {
   
       if (response.data.response.status !== 200) {
         console.error("Error in fetching transaction info for txHash: ", transactionHash);
-        return {};
+        return Promise.reject(response.data);
       }
   
       return JSON.parse(response.data.responseData);
@@ -138,9 +125,9 @@ class PopulateTransactionsLogs {
 
 }
 
-const populateTransactionLogs = new PopulateTransactionsLogs();
+const populateTransactionsDataFromBlockscout = new PopulateTransactionsDataFromBlockscout();
 
-populateTransactionLogs
+populateTransactionsDataFromBlockscout
   .perform()
   .then(function(rsp) {
     process.exit(0);

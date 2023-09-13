@@ -1,5 +1,7 @@
 const rootPrefix = '../../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  transactionDetailsConstants = require(rootPrefix +
+    "/lib/globalConstant/transactionDetails"),
   databaseConstants = require(rootPrefix + '/lib/globalConstant/database');
 
 // Declare variables.
@@ -30,9 +32,6 @@ class TransactionsDetailsModel extends ModelBase {
    * Format Db data.
    *
    * @param {object} dbRow
-   * @param {number} dbRow.id
-   * @param {string} dbRow.signature
-   * @param {string} dbRow.data
    *
    * @returns {object}
    */
@@ -41,8 +40,9 @@ class TransactionsDetailsModel extends ModelBase {
 
     const formattedData = {
       id: dbRow.id,
-      transaction_hash: dbRow.transaction_hash,
-      block_number: dbRow.block_number,
+      status:dbRow.status,
+      transactionHash: dbRow.transaction_hash,
+      blockNumber: dbRow.block_number,
       data: JSON.parse(dbRow.data),
       logsData: JSON.parse(dbRow.logs_data),
       highlightedEventStatus: dbRow.highlighted_event_status,
@@ -69,6 +69,50 @@ class TransactionsDetailsModel extends ModelBase {
 
     return oThis.insertMultiple(insertColumns, insertValues).fire();
   }
+
+  
+  /**
+   * Get max and min block number.
+   *
+   * @returns {Promise<Map>}
+   */
+  async getMaxAndMinBlockNumberWithoutLogs() {
+    const oThis = this;
+    const dbRows = await oThis
+      .select(
+        "MAX(block_number) as maxBlockNumber, MIN(block_number) as minBlockNumber"
+      )
+      .where(["status = ?", transactionDetailsConstants.pendingStatus])
+      .fire();
+
+    return dbRows[0];
+  }
+
+  /**
+   * This method gets the transactions in a blockNumber.
+   *
+   * @param {integer} blockNumber
+   *
+   * @returns {Promise<Map>}
+   *
+   */
+  async getRowsByBlockNumber(blockNumber) {
+    const oThis = this;
+    const response = [];
+    const dbRows = await oThis
+      .select("*")
+      .where({ block_number: blockNumber})
+      .where(["status = ?", transactionDetailsConstants.pendingStatus])
+      .fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }  
+
 }
 
 module.exports = TransactionsDetailsModel;

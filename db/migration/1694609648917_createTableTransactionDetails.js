@@ -7,13 +7,14 @@ const upQueries = [
     '  `id` bigint(20) NOT NULL AUTO_INCREMENT, \n' +
     '  `transaction_hash` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL,\n' +
     '  `block_number` bigint(20) NOT NULL, \n' +
+    '  `status` varchar(40) NOT NULL, \n' +
     '  `data` JSON  NULL,\n' +
     '  `logs_data` JSON  NULL,\n' +
-    '  `highlighted_event_status` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL,\n' +
-    '  `highlighted_event_html` JSON  NULL,\n' +
+    '  `highlighted_event_status` varchar(40) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL,\n' +
+    '  `highlighted_event_html` TEXT  NULL,\n' +
     '  `highlighted_event_texts` JSON  NULL,\n' +
     '  `highlighted_event_contract_address` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL,\n' +
-    '  `highlighted_event_method_name` JSON  NULL,\n' +
+    '  `highlighted_event_method_name` varchar(255)  NULL,\n' +
     '  `created_at` int(11) NOT NULL, \n' +
     '  `updated_at` int(11) NOT NULL, \n' +
     '  PRIMARY KEY (`id`), \n' +
