@@ -12,8 +12,6 @@ const rootPrefix = "..",
   httpRequest = require(rootPrefix + "/lib/HttpRequest"),
   basicHelper = require(rootPrefix + "/helpers/basic"),
   TransactionDetailModel = require(rootPrefix + "/app/models/mysql/main/TransactionsDetails"),
-  TransactionLogModel = require(rootPrefix +
-    "/app/models/mysql/main/TransactionLog"),
   transactionDetailsConstants = require(rootPrefix +
     "/lib/globalConstant/transactionDetails");
 
@@ -23,6 +21,7 @@ class PopulateTransactionsDataFromBlockscout {
   constructor() {}
 
   async perform() {
+    let oThis = this;
     console.log("Start Perform");
     let transactionDetailObj = new TransactionDetailModel();
     
@@ -62,8 +61,8 @@ class PopulateTransactionsDataFromBlockscout {
         }
 
       console.log("Update transaction details in DB....");
-      let transactionDetailObj = new TransactionLogModel();
-      await transactionDetailObj.updateById( oThis.transaction.id,
+      let transactionDetailObj = new TransactionDetailModel();
+      await transactionDetailObj.updateById( transactionDetail.id,
         {
           data:  JSON.stringify(transactionInfoData || {}),
           logs_data:  JSON.stringify(transactionLogsData || {}),
@@ -84,6 +83,7 @@ class PopulateTransactionsDataFromBlockscout {
    * @returns {Promise<*>}
    */
   async fetchTransactionLogs(transactionHash) {
+    let oThis = this;
     const endpoint = BASE_ENDPOINT + `transactions/${transactionHash}/logs`;
     let req = new httpRequest({ resource: endpoint, header: {} });
 
@@ -107,6 +107,7 @@ class PopulateTransactionsDataFromBlockscout {
    * @returns {Promise<*>}
    */
     async fetchTransactionInfo(transactionHash) {
+      let oThis = this;
       const endpoint = BASE_ENDPOINT + `transactions/${transactionHash}`;
       let req = new httpRequest({ resource: endpoint, header: {} });
   

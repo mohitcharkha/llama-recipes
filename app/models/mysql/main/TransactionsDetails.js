@@ -157,13 +157,22 @@ class TransactionsDetailsModel extends ModelBase {
       return response;
     } 
 
-    async updateHighlightedEvents(id, data) {
+
+  /**
+   * This method updates the row by id.
+   * 
+   * @param {integer} id
+   * 
+   * @returns {Promise<void>}
+   */
+    async updateById(id, updateParams) {
       const oThis = this;
+
       await oThis
-        .update(data)
+        .update(updateParams)
         .where({ id: id })
         .fire();
-    }
+    }    
 
 }
 

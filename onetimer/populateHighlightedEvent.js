@@ -50,7 +50,7 @@ class PopulateHighlightedEvent {
         let updateTransactionDetailObj = new TransactionDetailModel();
         console.log('highlightedEvents: ', tx.id);
         if (highlightedEvents.length > 0) {
-          await updateTransactionDetailObj.updateHighlightedEvents(tx.id, highlightedEvents);
+          await updateTransactionDetailObj.updateById(tx.id, highlightedEvents);
         }
         await basicHelper.sleep(50);
       }
