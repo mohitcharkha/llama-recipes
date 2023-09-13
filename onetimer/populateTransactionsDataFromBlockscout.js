@@ -67,7 +67,6 @@ class PopulateTransactionsDataFromBlockscout {
         {
           data:  JSON.stringify(transactionInfoData || {}),
           logs_data:  JSON.stringify(transactionLogsData || {}),
-          highlighted_event_status: "pending",
           status: status
         }
       );

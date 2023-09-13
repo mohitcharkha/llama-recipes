@@ -88,6 +88,24 @@ class TransactionsDetailsModel extends ModelBase {
     return dbRows[0];
   }
 
+    /**
+   * Get max and min block number for highlighted event.
+   *
+   * @returns {Promise<Map>}
+   */
+    async getMaxAndMinBlockNumberWithoutHighlightedEvent() {
+      const oThis = this;
+      const dbRows = await oThis
+        .select(
+          "MAX(block_number) as maxBlockNumber, MIN(block_number) as minBlockNumber"
+        )
+        .where(["highlighted_event_status = ?", 
+          transactionDetailsConstants.pendingHighlightedEventStatus])
+        .fire();
+  
+      return dbRows[0];
+    }
+
   /**
    * This method gets the transactions in a blockNumber.
    *
@@ -112,6 +130,40 @@ class TransactionsDetailsModel extends ModelBase {
 
     return response;
   }  
+
+    /**
+   * This method gets the transactions in a blockNumber.
+   *
+   * @param {integer} blockNumber
+   *
+   * @returns {Promise<Map>}
+   *
+   */
+    async getRowsByBlockNumberForHighlightedEvent(blockNumber) {
+      const oThis = this;
+      const response = [];
+      const dbRows = await oThis
+        .select("*")
+        .where({ block_number: blockNumber})
+        .where(["highlighted_event_status = ?", 
+          transactionDetailsConstants.pendingHighlightedEventStatus])
+        .fire();
+  
+      for (let index = 0; index < dbRows.length; index++) {
+        const formatDbRow = oThis.formatDbData(dbRows[index]);
+        response.push(formatDbRow);
+      }
+  
+      return response;
+    } 
+
+    async updateHighlightedEvents(id, data) {
+      const oThis = this;
+      await oThis
+        .update(data)
+        .where({ id: id })
+        .fire();
+    }
 
 }
 

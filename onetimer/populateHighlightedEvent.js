@@ -13,7 +13,9 @@ const cheerio = require('cheerio');
 const rootPrefix = '..',
   httpRequest = require(rootPrefix + '/lib/HttpRequest'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  TransactionModel = require(rootPrefix + '/app/models/mysql/main/Transaction');
+  transactionDetailsConstants = require(rootPrefix +
+    "/lib/globalConstant/transactionDetails"),
+  TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionDetails');
 
 const startBlock = 17700000; // 17700000 
 const endBlock = 17700015; // example block
@@ -23,19 +25,32 @@ class PopulateHighlightedEvent {
   constructor() {}
 
   async perform() {
-    console.log('Start Perform');
-    let currentBlock = startBlock;
+    console.log("Start Perform");
+    let blockNumbertransactionDetailObj = new TransactionDetailModel();
+    
+    // Fetch all valid transactions
+    console.log("Fetching all valid transactions....");
 
-    while(currentBlock < endBlock) {
-      console.log('block: ', currentBlock);
-      let transactionObj = new TransactionModel();
-      let transactionsData = await transactionObj.getTransactionsByBlockNumber(currentBlock);
-      for (let tx of transactionsData) {
-        let highlightedEvents = await this.parseData(tx.txHash);
-        let updateTransactionObj = new TransactionModel();
+    const blockNumbersData = await blockNumbertransactionDetailObj.getMaxAndMinBlockNumberWithoutHighlightedEvent();
+    const startBlockNumber = blockNumbersData.minBlockNumber;
+    const endBlockNumber = blockNumbersData.maxBlockNumber;
+
+    let currentBlock = startBlockNumber;
+
+    while (currentBlock <= endBlockNumber) {
+      console.log("Current block number: ", currentBlock);
+
+      let fetchTransactionDetailObj = new TransactionDetailModel();
+      let transactionDetails = await fetchTransactionDetailObj.getRowsByBlockNumber(
+        currentBlockNumber
+      );
+
+      for (let tx of transactionDetails) {
+        let highlightedEvents = await this.parseData(tx.transactionHash);
+        let updateTransactionDetailObj = new TransactionDetailModel();
         console.log('highlightedEvents: ', tx.id);
         if (highlightedEvents.length > 0) {
-          await updateTransactionObj.updateHighlightedEvents(tx.id, highlightedEvents);
+          await updateTransactionDetailObj.updateHighlightedEvents(tx.id, highlightedEvents);
         }
         await basicHelper.sleep(50);
       }
@@ -82,7 +97,10 @@ class PopulateHighlightedEvent {
       return Promise.reject(new Error('Error in fetching data'));
     }
     const texts = this.extractTextFromElement(data.data.responseData);
-    return texts;
+    return { 
+      highlighted_event_texts: JSON.stringify(texts), 
+      highlighted_event_status:  transactionDetailsConstants.successHighlightedEventStatus
+    }
   }
 }
 
