@@ -6,7 +6,6 @@ const rootPrefix = '..',
   ContractAbisModel = require(rootPrefix + '/app/models/mysql/main/ContractAbis');
   
 const apiKey = coreConstants.etherscanApiKey;
-const array = [];
 
 class PopulateAbis {
   async perform() {
@@ -24,7 +23,11 @@ class PopulateAbis {
       for (let index = 0; index < transactions.length; index++) {
         let transaction = transactions[index];
 
-        const items = transaction.data.items;
+        const items = transaction.data && transaction.data.items;
+
+        if (!items || items.length === 0) {
+          continue;
+        }
 
         for (let i = 0; i < items.length; i++) {
           let item = items[i];
@@ -32,7 +35,6 @@ class PopulateAbis {
           if (item.topics && item.topics[0]) {
             let topic = item.topics[0];
 
-            array.push(topic);
 
             const checkIfAbiExists = await oThis.checkIfAbiExistsInDb(topic);
 
@@ -50,14 +52,14 @@ class PopulateAbis {
 
             contractAbi = JSON.parse(contractAbi);
             
-            oThis.upsertAbisInDb(contractAbi);
+            await oThis.upsertAbisInDb(contractAbi);
           }
         }
       }
+      console.log('page: ', page);
       page++;
     }
 
-    console.log('array: ', array.length);
   }
 
   async getABI(contractAddress) {
@@ -72,7 +74,7 @@ class PopulateAbis {
       }
 
       console.log('response.data: ', response.data);
-      throw new Error('Error in fetching abi');
+      // throw new Error('Error in fetching abi');
     } catch (error) {
       console.error('Error:', error);
 
@@ -108,6 +110,10 @@ class PopulateAbis {
         topics.push(topic);
         signatureToAbiMap[topic] = JSON.stringify(abiObj);
       }
+    }
+
+    if (topics.length === 0) {
+      return;
     }
 
     const existingAbis = await new ContractAbisModel()
