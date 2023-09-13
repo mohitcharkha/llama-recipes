@@ -15,10 +15,7 @@ const rootPrefix = '..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   transactionDetailsConstants = require(rootPrefix +
     "/lib/globalConstant/transactionDetails"),
-  TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionDetails');
-
-const startBlock = 17700000; // 17700000 
-const endBlock = 17700015; // example block
+  TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails');
 
 
 class PopulateHighlightedEvent {
@@ -41,17 +38,17 @@ class PopulateHighlightedEvent {
       console.log("Current block number: ", currentBlock);
 
       let fetchTransactionDetailObj = new TransactionDetailModel();
-      let transactionDetails = await fetchTransactionDetailObj.getRowsByBlockNumber(
-        currentBlockNumber
+      let transactionDetails = await fetchTransactionDetailObj.getRowsByBlockNumberForHighlightedEvent(
+        currentBlock
       );
+
+      // console.log("Total transactions: ", transactionDetails.length);
 
       for (let tx of transactionDetails) {
         let highlightedEvents = await this.parseData(tx.transactionHash);
-        let updateTransactionDetailObj = new TransactionDetailModel();
         console.log('highlightedEvents: ', tx.id);
-        if (highlightedEvents.length > 0) {
+          let updateTransactionDetailObj = new TransactionDetailModel();
           await updateTransactionDetailObj.updateById(tx.id, highlightedEvents);
-        }
         await basicHelper.sleep(50);
       }
       currentBlock++;
@@ -59,7 +56,23 @@ class PopulateHighlightedEvent {
     console.log('End Perform');
   }
 
- 
+  extractIDMFromElement(text) {
+    htmlObj = cheerio.load(text);
+    highlightedEventsIDM = htmlObj('#spanFullIDM');
+    highlightedEventHtml = highlightedEventsIDM.html();
+    highlightedEventIDMText = highlightedEventsIDM.text();
+    const highlightedEventsIDMData = {
+      html: highlightedEventHtml,
+      text: highlightedEventIDMText
+    }
+    return {
+        highlighted_event_idm: JSON.stringify(highlightedEventsIDMData),
+        highlighted_event_status:  transactionDetailsConstants.successHighlightedEventStatus
+      }
+  } 
+
+
+
   extractTextFromElement(text) {
     const htmlObj = cheerio.load(text);
     let textResults = [];
@@ -92,15 +105,26 @@ class PopulateHighlightedEvent {
     let  url = 'https://etherscan.io/tx/' + txHash;
     let req = new httpRequest({resource: url, header: {}});
     const data = await req.get({});
+    
     if (data.data.response.status != 200 && data.data.response.status > 399){
       console.log('data: ', data);
       return Promise.reject(new Error('Error in fetching data'));
     }
-    const texts = this.extractTextFromElement(data.data.responseData);
+
     return { 
-      highlighted_event_texts: JSON.stringify(texts), 
+      highlighted_event_html: data.data.responseData, 
       highlighted_event_status:  transactionDetailsConstants.successHighlightedEventStatus
     }
+    
+
+    // const texts = this.extractTextFromElement(data.data.responseData);
+    // if (texts.length > 0) {
+    //   return { 
+    //     highlighted_event_texts: JSON.stringify(texts), 
+    //     highlighted_event_status:  transactionDetailsConstants.successHighlightedEventStatus
+    //   }    }else{
+    //   return this.extractIDMFromElement(data.data.responseData);
+    // }
   }
 }
 

@@ -11,7 +11,7 @@ const upQueries = [
     '  `data` JSON  NULL,\n' +
     '  `logs_data` JSON  NULL,\n' +
     '  `highlighted_event_status` varchar(40) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL,\n' +
-    '  `highlighted_event_html` TEXT  NULL,\n' +
+    '  `highlighted_event_html` LONGTEXT  CHARACTER SET utf8 COLLATE utf8_unicode_ci  NULL,\n' +
     '  `highlighted_event_texts` JSON  NULL,\n' +
     '  `highlighted_event_contract_address` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL,\n' +
     '  `highlighted_event_method_name` varchar(255)  NULL,\n' +
@@ -21,7 +21,10 @@ const upQueries = [
     '  UNIQUE KEY `uk_tx_hash` (`transaction_hash`), \n' +
     '  KEY `idx_1` (`status`), \n' +
     '  KEY `idx_2` (`highlighted_event_status`) \n' +
-    ') ENGINE=InnoDB AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;'
+    ') ENGINE=InnoDB AUTO_INCREMENT=1000 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;',
+
+    'ALTER TABLE transactions_details CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;',
+    'ALTER TABLE transactions_details CHANGE highlighted_event_html highlighted_event_html LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
 ];
 
 const downQueries = ['DROP TABLE if exists `transactions_details`;'];
