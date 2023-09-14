@@ -15,6 +15,7 @@ const upQueries = [
     '  `highlighted_event_texts` JSON  NULL,\n' +
     '  `highlighted_event_contract_address` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NULL,\n' +
     '  `highlighted_event_method_name` varchar(255)  NULL,\n' +
+    '  `highlighted_event_extra_data` JSON  NULL,\n' +
     '  `created_at` int(11) NOT NULL, \n' +
     '  `updated_at` int(11) NOT NULL, \n' +
     '  PRIMARY KEY (`id`), \n' +

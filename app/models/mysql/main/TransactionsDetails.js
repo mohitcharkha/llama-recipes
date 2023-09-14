@@ -50,6 +50,7 @@ class TransactionsDetailsModel extends ModelBase {
       highlightedEventTexts: JSON.parse(dbRow.highlighted_event_texts),
       highlightedEventContractAddress: dbRow.highlighted_event_contract_address,
       highlightedEventMethodName: dbRow.highlighted_event_method_name,
+      highlightedEventExtraData: JSON.parse(dbRow.highlighted_event_extra_data),
     };
 
     return formattedData;
@@ -172,7 +173,34 @@ class TransactionsDetailsModel extends ModelBase {
         .update(updateParams)
         .where({ id: id })
         .fire();
-    }    
+    }  
+    
+   /**
+   * This method gets the transactions in a blockNumber.
+   *
+   * @param {integer} blockNumber
+   *
+   * @returns {Promise<Map>}
+   *
+   */
+   async getRowsToParseHighlightedEvent(limit, offset) {
+    const oThis = this;
+    const response = [];
+    const dbRows = await oThis
+      .select("*")
+      .where(["highlighted_event_status = ?", 
+      transactionDetailsConstants.successHighlightedEventStatus])
+      .offset(offset)
+      .limit(limit)
+      .fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }     
 
 }
 

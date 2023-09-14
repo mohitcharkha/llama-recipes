@@ -8,15 +8,12 @@
  *
  */
 
-const cheerio = require('cheerio');
-
 const rootPrefix = '..',
   httpRequest = require(rootPrefix + '/lib/HttpRequest'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   transactionDetailsConstants = require(rootPrefix +
     "/lib/globalConstant/transactionDetails"),
   TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails');
-
 
 class PopulateHighlightedEvent {
   constructor() {}
@@ -42,8 +39,6 @@ class PopulateHighlightedEvent {
         currentBlock
       );
 
-      // console.log("Total transactions: ", transactionDetails.length);
-
       for (let tx of transactionDetails) {
         let highlightedEvents = await this.parseData(tx.transactionHash);
         console.log('highlightedEvents: ', tx.id);
@@ -55,50 +50,6 @@ class PopulateHighlightedEvent {
     }
     console.log('End Perform');
   }
-
-  extractIDMFromElement(text) {
-    htmlObj = cheerio.load(text);
-    highlightedEventsIDM = htmlObj('#spanFullIDM');
-    highlightedEventHtml = highlightedEventsIDM.html();
-    highlightedEventIDMText = highlightedEventsIDM.text();
-    const highlightedEventsIDMData = {
-      html: highlightedEventHtml,
-      text: highlightedEventIDMText
-    }
-    return {
-        highlighted_event_idm: JSON.stringify(highlightedEventsIDMData),
-        highlighted_event_status:  transactionDetailsConstants.successHighlightedEventStatus
-      }
-  } 
-
-
-
-  extractTextFromElement(text) {
-    const htmlObj = cheerio.load(text);
-    let textResults = [];
-    const highlightedEvents = htmlObj('#wrapperContent .d-flex.flex-wrap.align-items-center');
-    highlightedEvents.each(function() {
-      let element = htmlObj(this);
-      let result = [];
-      element.children().each(function() {
-        const tagType = this.type;
-
-        if (tagType === 'text') {
-          result.push(this.data.trim());
-        } else if (tagType === 'tag') {
-          const text = htmlObj(this).text().trim();
-          if (text) {
-            result.push(text);
-          }
-        }
-      });
-
-      const outputText =  result.join(' ').replace(/\s+/g, ' ').trim();
-      textResults.push(outputText.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim());
-    });
-
-    return textResults;
-}
 
   async parseData(txHash) {
     console.log('fetch for tx hash:', txHash);
@@ -115,16 +66,6 @@ class PopulateHighlightedEvent {
       highlighted_event_html: data.data.responseData, 
       highlighted_event_status:  transactionDetailsConstants.successHighlightedEventStatus
     }
-    
-
-    // const texts = this.extractTextFromElement(data.data.responseData);
-    // if (texts.length > 0) {
-    //   return { 
-    //     highlighted_event_texts: JSON.stringify(texts), 
-    //     highlighted_event_status:  transactionDetailsConstants.successHighlightedEventStatus
-    //   }    }else{
-    //   return this.extractIDMFromElement(data.data.responseData);
-    // }
   }
 }
 
