@@ -19,9 +19,8 @@ const API_ENDPOINT = "https://api.etherscan.io/api";
 const API_KEY = coreConstants.etherscanApiKey;
 
 const start_block = 17700000;
-const offset = 20000;
-const numberOfBlocks = 20;
-
+const offset = 4000;
+const numberOfBlocks = 100;
 
 class PopulateTransactionsFromEtherscan {
   constructor() {}
@@ -90,7 +89,8 @@ class PopulateTransactionsFromEtherscan {
   getBlocksArray(start_block) {
     let blocksArray = [];
     for (let i = 0; i < numberOfBlocks; i++) {
-      blocksArray.push(start_block + (i * offset));
+      let blockNumber = start_block + (i * offset)
+      blocksArray.push(blockNumber);
     }
     return blocksArray;
   }

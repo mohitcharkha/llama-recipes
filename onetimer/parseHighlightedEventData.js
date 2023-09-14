@@ -52,21 +52,34 @@ class ParseHighlightedEvent {
     let html = txDetail.highlightedEventHtml;
     let updateParams = {};
 
-    const {texts, eventContactAddress, eventMethodName} = this.extractTextFromElement(html);
-    if (texts.length > 0) {
-      updateParams =  { 
-        highlighted_event_texts: JSON.stringify(texts),
-        highlighted_event_contract_address: eventContactAddress,
-        highlighted_event_method_name: eventMethodName
+    const  response = this.extractTextFromElement(html);
+    let texts = response.texts;
+    let eventContactAddress = response.eventContactAddress;
+    let eventMethodName = response.eventMethodName;
+    let eventMethodId = response.eventMethodId;
 
-      }    
+    if (texts && texts.length > 0) {
+      updateParams["highlighted_event_texts"] =  JSON.stringify(texts);
     }
-    const extraData = this.extractIDMFromElement(html);
-    if (extraData){
-      updateParams['highlighted_event_extra_data'] = JSON.stringify(extraData);
-    } else{
-      updateParams['highlighted_event_extra_data'] = null;
+    if (eventContactAddress) {
+      updateParams["highlighted_event_contract_address"] = eventContactAddress;
     }
+    if (eventMethodName) {
+      updateParams["highlighted_event_method_name"] = eventMethodName;
+    }
+    if (eventMethodId) {
+      updateParams["highlighted_event_extra_data"] = JSON.stringify({"highlighted_event_method_id": eventMethodId});
+    }
+
+    if ((!texts || texts.length == 0) && !eventMethodName){
+      const extraData = this.extractIDMFromElement(html);
+      if (extraData){
+        updateParams['highlighted_event_extra_data'] = JSON.stringify(extraData);
+      } else{
+        updateParams['highlighted_event_extra_data'] = null;
+      }
+    }
+
     return updateParams;
   }
 
@@ -110,7 +123,6 @@ extractTextFromElement(html) {
 
       return result;
   }
-
   let textResults = [];
   let highlightedEvents = htmlObj('#wrapperContent .d-flex.flex-wrap.align-items-center');
   highlightedEvents.each(function() {
@@ -128,12 +140,24 @@ extractTextFromElement(html) {
     });
   }
 
-  if (textResults.length === 0) {
-    // check for method name or id
-  }
   // check for contract address
 
-  return { texts: textResults };
+  if (textResults.length > 0) {
+    return { texts: textResults };
+  }
+
+  let targetElement = htmlObj('span[data-bs-title^="0x"]').filter(function(f) {
+    return /^(\w+)$/.test(htmlObj(this).text().trim());  // regex to match a single word
+  });
+  // Extract the values
+  let spanText = targetElement.text().trim();  // This will give you "Transfer" or any other text contained in the span
+  if(spanText){
+    let fullDataTitleValue = targetElement.attr('data-bs-title');  // This extracts the value of the data-bs-title attribute
+    let matchedHex = fullDataTitleValue.match(/(0x[a-fA-F0-9]+)/);
+    let hexValue = matchedHex ? matchedHex[1] : null;  // extracting the matched hex value or defaulting to null if no match
+    return { eventMethodName: spanText,  eventMethodId: hexValue};
+  }
+  return {};
 }
 
 

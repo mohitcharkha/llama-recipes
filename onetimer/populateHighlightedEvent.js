@@ -56,7 +56,14 @@ class PopulateHighlightedEvent {
     let  url = 'https://etherscan.io/tx/' + txHash;
     let req = new httpRequest({resource: url, header: {}});
     const data = await req.get({});
-    
+
+    if (data.data.response.status == 302){
+      console.log('Sleep for 20 sec \n 302 error -- data: ', data);
+      await basicHelper.sleep(20000);
+      let req = new httpRequest({resource: url, header: {}});
+      data = await req.get({});
+    }
+
     if (data.data.response.status != 200 && data.data.response.status > 204){
       console.log('data: ', data);
       return Promise.reject(new Error('Error in fetching data'));
