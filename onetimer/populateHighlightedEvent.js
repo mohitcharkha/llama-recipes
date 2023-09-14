@@ -57,7 +57,7 @@ class PopulateHighlightedEvent {
     let req = new httpRequest({resource: url, header: {}});
     const data = await req.get({});
     
-    if (data.data.response.status != 200 && data.data.response.status > 399){
+    if (data.data.response.status != 200 && data.data.response.status > 204){
       console.log('data: ', data);
       return Promise.reject(new Error('Error in fetching data'));
     }
