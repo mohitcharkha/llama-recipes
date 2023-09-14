@@ -16,6 +16,7 @@ const rootPrefix = "..",
     "/lib/globalConstant/transactionDetails");
 
 const BASE_ENDPOINT = "https://eth.blockscout.com/api/v2/";
+const offset = 20000;
 
 class PopulateTransactionsDataFromBlockscout {
   constructor() {}
@@ -71,7 +72,7 @@ class PopulateTransactionsDataFromBlockscout {
       );
       }
 
-      currentBlockNumber++;
+      currentBlockNumber = offset + currentBlockNumber;
     }
     console.log("End Perform");
   }

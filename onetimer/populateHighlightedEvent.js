@@ -14,7 +14,7 @@ const rootPrefix = '..',
   transactionDetailsConstants = require(rootPrefix +
     "/lib/globalConstant/transactionDetails"),
   TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails');
-
+  const offset = 20000;
 class PopulateHighlightedEvent {
   constructor() {}
 
@@ -46,7 +46,7 @@ class PopulateHighlightedEvent {
           await updateTransactionDetailObj.updateById(tx.id, highlightedEvents);
         await basicHelper.sleep(50);
       }
-      currentBlock++;
+      currentBlock = offset + currentBlock;
     }
     console.log('End Perform');
   }

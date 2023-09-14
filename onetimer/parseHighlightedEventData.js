@@ -13,7 +13,6 @@ const cheerio = require('cheerio');
 const rootPrefix = '..',
   TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails');
 
-
 class ParseHighlightedEvent {
   constructor() {}
 
