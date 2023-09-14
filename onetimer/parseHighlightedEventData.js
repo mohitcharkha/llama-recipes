@@ -4,21 +4,17 @@
  *
  * Populate HighlightedEvent from etherscan web page
  *
- * Usage: node onetimer/populateHighlightedEvent.js
+ * Usage: node onetimer/parseHighlightedEventData.js
  *
  */
 
 const cheerio = require('cheerio');
 
 const rootPrefix = '..',
-  httpRequest = require(rootPrefix + '/lib/HttpRequest'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  transactionDetailsConstants = require(rootPrefix +
-    "/lib/globalConstant/transactionDetails"),
   TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails');
 
 
-class PopulateHighlightedEvent {
+class ParseHighlightedEvent {
   constructor() {}
 
   async perform() {
@@ -49,14 +45,13 @@ class PopulateHighlightedEvent {
         let updateTransactionDetailObj = new TransactionDetailModel();
         await updateTransactionDetailObj.updateById(txDetail.id, updateParams);
       }
-      currentBlock++;
     }
     console.log('End Perform');
   }
 
   async parseData(txDetail) {
     let html = txDetail.highlightedEventHtml;
-    const updateParams = {};
+    let updateParams = {};
 
     const {texts, eventContactAddress, eventMethodName} = this.extractTextFromElement(html);
     if (texts.length > 0) {
@@ -67,62 +62,105 @@ class PopulateHighlightedEvent {
 
       }    
     }
-    const extraData = this.extractIDMFromElement(data.data.responseData);
-    updateParams['highlighted_event_extra_data'] = JSON.stringify(extraData);
+    const extraData = this.extractIDMFromElement(html);
+    if (extraData){
+      updateParams['highlighted_event_extra_data'] = JSON.stringify(extraData);
+    } else{
+      updateParams['highlighted_event_extra_data'] = null;
+    }
     return updateParams;
   }
 
-  extractTextFromElement(html) {
-    const htmlObj = cheerio.load(html);
-    let textResults = [];
-    const highlightedEvents = htmlObj('#wrapperContent .d-flex.flex-wrap.align-items-center');
-    highlightedEvents.each(function() {
-      let element = htmlObj(this);
-      let result = [];
-      element.children().each(function() {
-        const tagType = this.type;
+extractTextFromElement(html) {
+  const htmlObj = cheerio.load(html);
 
-        if (tagType === 'text') {
-          result.push(this.data.trim());
-        } else if (tagType === 'tag') {
-          const text = htmlObj(this).text().trim();
-          if (text) {
-            result.push(text);
+  function recursiveTextExtraction(element) {
+      let result = [];
+      
+      element.contents().each(function() {
+          const tagType = this.type;
+          const currentElement = htmlObj(this);
+
+          if (tagType === 'text') {
+              result.push(this.data.trim());
+          } else if (tagType === 'tag') {
+              const tagName = this.name;
+
+              if (tagName === 'div' && currentElement.attr('class')) {
+                  return; // skip div with any class
+              }
+
+              if (tagName === 'a') {
+                  const href = currentElement.attr('href');
+
+                  if (href && /^\/token\/0x[a-fA-F0-9]{40}$/.test(href)) {
+                      result.push(href.split('/token/')[1]);
+                  } else if (href && /^\/address\/0x[a-fA-F0-9]{40}$/.test(href)) {
+                      const title = currentElement.attr('title'); // Extract the full address from the title
+                      result.push(title || href.split('/address/')[1]);
+                  } else {
+                      result.push(currentElement.text().trim());
+                  }
+              } else if (tagName === 'span') {
+                  result.push(...recursiveTextExtraction(currentElement));
+              } else {
+                  result.push(currentElement.text().trim());
+              }
           }
-        }
       });
 
-      const outputText =  result.join(' ').replace(/\s+/g, ' ').trim();
-      textResults.push(outputText.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim());
-    });
+      return result;
+  }
 
-    return textResults;
-  }  
+  let textResults = [];
+  let highlightedEvents = htmlObj('#wrapperContent .d-flex.flex-wrap.align-items-center');
+  highlightedEvents.each(function() {
+      const outputText = recursiveTextExtraction(htmlObj(this)).join(' ').replace(/\s+/g, ' ').trim();
+      textResults.push(outputText.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim());
+  });
+
+  if (textResults.length === 0) {
+    let highlightedEvents = htmlObj('#wrapperContent .d-flex.align-items-baseline');
+
+    highlightedEvents.each(function() {
+        const targetSpan = htmlObj(this).children().eq(1); // Navigating to the second span
+        const outputText = recursiveTextExtraction(targetSpan).join(' ').replace(/\s+/g, ' ').trim();
+        textResults.push(outputText.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim());
+    });
+  }
+
+  if (textResults.length === 0) {
+    // check for method name or id
+  }
+  // check for contract address
+
+  return { texts: textResults };
+}
+
 
   extractIDMFromElement(text) {
-    htmlObj = cheerio.load(text);
-    highlightedEventsIDM = htmlObj('#spanFullIDM');
-    highlightedEventHtml = highlightedEventsIDM.html();
-    highlightedEventIDMText = highlightedEventsIDM.text();
+    let htmlObj = cheerio.load(text);
+    let highlightedEventsIDM = htmlObj('#spanFullIDM');
+    let highlightedEventHtml = highlightedEventsIDM.html();
+    let highlightedEventIDMText = highlightedEventsIDM.text();
     const highlightedEventsIDMData = {
       html: highlightedEventHtml,
       text: highlightedEventIDMText
     }
+    if (!highlightedEventIDMText){
+      return null;
+    }
     return {
-        highlighted_event_idm: JSON.stringify(highlightedEventsIDMData),
-        highlighted_event_status:  transactionDetailsConstants.successHighlightedEventStatus
-      }
+        highlighted_event_idm: highlightedEventsIDMData
+      };
   } 
-
-
-
 
 }
 
 
-const populateHighlightedEvent = new PopulateHighlightedEvent();
+const parseHighlightedEvent = new ParseHighlightedEvent();
 
-populateHighlightedEvent
+parseHighlightedEvent
   .perform()
   .then(function(rsp) {
     process.exit(0); 
@@ -137,3 +175,4 @@ populateHighlightedEvent
 //   hex_string = "5363616d2e20486f6e6579706f742e20313030207461782e"
 // decoded_string = bytes.fromhex(hex_string).decode('utf-8')
 // print(decoded_string)
+
