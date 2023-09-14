@@ -29,7 +29,7 @@ class PopulateHighlightedEvent {
     const startBlockNumber = blockNumbersData.minBlockNumber;
     const endBlockNumber = blockNumbersData.maxBlockNumber;
 
-    let currentBlock = startBlockNumber;
+    let currentBlock = parseInt(startBlockNumber);
 
     while (currentBlock <= endBlockNumber) {
       console.log("Current block number: ", currentBlock);

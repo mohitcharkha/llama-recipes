@@ -33,7 +33,7 @@ class PopulateTransactionsDataFromBlockscout {
     const startBlockNumber = blockNumbersData.minBlockNumber;
     const endBlockNumber = blockNumbersData.maxBlockNumber;
 
-    let currentBlockNumber = startBlockNumber;
+    let currentBlockNumber = parseInt(startBlockNumber);
 
     while (currentBlockNumber <= endBlockNumber) {
       console.log("Current block number: ", currentBlockNumber);
@@ -46,7 +46,7 @@ class PopulateTransactionsDataFromBlockscout {
         const transactionDetail = transactionDetails[i];
         const transactionHash = transactionDetail.transactionHash;
 
-        console.log("Fetching transaction logs for transactionHash: ",transactionHash);
+        console.log("Fetching transaction logs for transactionHash: ",transactionHash, transactionDetail.id);
 
         const transactionLogsData = await this.fetchTransactionLogs(transactionHash);
         const transactionInfoData = await this.fetchTransactionInfo(transactionHash);
