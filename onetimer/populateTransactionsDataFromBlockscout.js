@@ -16,7 +16,7 @@ const rootPrefix = "..",
     "/lib/globalConstant/transactionDetails");
 
 const BASE_ENDPOINT = "https://eth.blockscout.com/api/v2/";
-const offset = 20000;
+const offset = 4000;
 
 class PopulateTransactionsDataFromBlockscout {
   constructor() {}
@@ -87,16 +87,22 @@ class PopulateTransactionsDataFromBlockscout {
     let oThis = this;
     const endpoint = BASE_ENDPOINT + `transactions/${transactionHash}/logs`;
     let req = new httpRequest({ resource: endpoint, header: {} });
+    let response = await req.get();
 
-    const response = await req.get();
-
-    // console.log('response: ', response);
-    await basicHelper.sleep(50);
+    if (response.data.response.status == 429){
+      console.log('Sleep for 20 sec \n 302 error -- data: ', response.data);
+      await basicHelper.sleep(20000);
+      let req2 = new httpRequest({ resource: endpoint, header: {} });
+      response = await req2.get();
+    }
 
     if (response.data.response.status !== 200) {
       console.error("Error in fetching transaction logs for txHash: ", transactionHash);
       return Promise.reject(response.data);
     }
+
+    // console.log('response: ', response);
+    await basicHelper.sleep(50);
 
     return JSON.parse(response.data.responseData);
   }
@@ -111,16 +117,22 @@ class PopulateTransactionsDataFromBlockscout {
       let oThis = this;
       const endpoint = BASE_ENDPOINT + `transactions/${transactionHash}`;
       let req = new httpRequest({ resource: endpoint, header: {} });
+      let response = await req.get();
   
-      const response = await req.get();
   
-      await basicHelper.sleep(50);
-  
+      if (response.data.response.status == 429){
+        console.log('Sleep for 20 sec \n 429 error -- data: ', response.data);
+        await basicHelper.sleep(20000);
+        let req2 = new httpRequest({ resource: endpoint, header: {} });
+        response = await req2.get();
+      }
+
       if (response.data.response.status !== 200) {
         console.error("Error in fetching transaction info for txHash: ", transactionHash);
         return Promise.reject(response.data);
       }
   
+      await basicHelper.sleep(50);
       return JSON.parse(response.data.responseData);
     }
 

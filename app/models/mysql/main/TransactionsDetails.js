@@ -51,6 +51,9 @@ class TransactionsDetailsModel extends ModelBase {
       highlightedEventContractAddress: dbRow.highlighted_event_contract_address,
       highlightedEventMethodName: dbRow.highlighted_event_method_name,
       highlightedEventExtraData: JSON.parse(dbRow.highlighted_event_extra_data),
+      isHighlightedEventDecoded: dbRow.is_highlighted_event_decoded,
+      totalEvents: dbRow.total_events,
+      totalDecodedEvents: dbRow.total_decoded_events
     };
 
     if (dbRow.txn_type) {
