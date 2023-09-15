@@ -14,7 +14,7 @@ const rootPrefix = '..',
   transactionDetailsConstants = require(rootPrefix +
     "/lib/globalConstant/transactionDetails"),
   TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails');
-  const offset = 20000;
+  const offset = 4000;
 class PopulateHighlightedEvent {
   constructor() {}
 
@@ -26,8 +26,8 @@ class PopulateHighlightedEvent {
     console.log("Fetching all valid transactions....");
 
     const blockNumbersData = await blockNumbertransactionDetailObj.getMaxAndMinBlockNumberWithoutHighlightedEvent();
-    const startBlockNumber = blockNumbersData.minBlockNumber;
-    const endBlockNumber = blockNumbersData.maxBlockNumber;
+    const startBlockNumber = blockNumbersData.minBlockNumber; // replace with min block number 
+    const endBlockNumber = blockNumbersData.maxBlockNumber; // replace with max block number
 
     let currentBlock = parseInt(startBlockNumber);
 
@@ -55,13 +55,13 @@ class PopulateHighlightedEvent {
     console.log('fetch for tx hash:', txHash);
     let  url = 'https://etherscan.io/tx/' + txHash;
     let req = new httpRequest({resource: url, header: {}});
-    const data = await req.get({});
+    let data = await req.get({});
 
     if (data.data.response.status == 302){
       console.log('Sleep for 20 sec \n 302 error -- data: ', data);
       await basicHelper.sleep(20000);
-      let req = new httpRequest({resource: url, header: {}});
-      data = await req.get({});
+      let req2 = new httpRequest({resource: url, header: {}});
+      data = await req2.get({});
     }
 
     if (data.data.response.status != 200 && data.data.response.status > 204){
