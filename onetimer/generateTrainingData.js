@@ -101,12 +101,13 @@ class GenerateTrainingData {
     for (let item of txDetail.logsData.items) {
       decodedLogs.push({
         decoded_log: item.decoded,
-        decode_status: "SUCCESS",
+        address: item.address,
       });
     }
 
     // Format transactions
     let transactions = {
+      hash: txDetail.data.hash,
       to: txDetail.data.to,
       from: txDetail.data.from,
       type: txDetail.data.type,
@@ -143,15 +144,15 @@ Additionally, it is crucial to ensure accurate representation of token and total
         },
         {
           role: "user",
-          content: {
+          content: JSON.stringify({
             event_logs: trainingDataItem.event_logs,
             token_transfers: trainingDataItem.token_transfers,
             transactions: trainingDataItem.transactions,
-          },
+          }),
         },
         {
           role: "assistant",
-          content: trainingDataItem.output,
+          content: JSON.stringify(trainingDataItem.output),
         },
       ],
     };

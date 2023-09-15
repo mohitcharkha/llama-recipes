@@ -21,6 +21,7 @@
     "js-sha3": "^0.9.1",
     "moment-timezone": "0.5.33",
     "mysql": "2.18.1",
+    "openai": "^4.7.0",
     "qs": "^6.11.2",
     "sanitize-html": "2.3.2"
   },
