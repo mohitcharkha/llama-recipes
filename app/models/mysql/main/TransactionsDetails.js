@@ -53,7 +53,7 @@ class TransactionsDetailsModel extends ModelBase {
       highlightedEventExtraData: JSON.parse(dbRow.highlighted_event_extra_data),
       isHighlightedEventDecoded: dbRow.is_highlighted_event_decoded,
       totalEvents: dbRow.total_events,
-      totalDecodedEvents: dbRow.total_decoded_events
+      totalDecodedEvents: dbRow.total_decoded_events,
     };
 
     if (dbRow.txn_type) {
@@ -220,10 +220,14 @@ class TransactionsDetailsModel extends ModelBase {
    * @returns {Promise<Map>}
    */
 
-  async getRowsWithValidHighlightedEventTexts(limit, offset) {
+  async getRowsWithValidHighlightedEventTexts(
+    limit,
+    offset,
+    trainedTransactionHashesArray
+  ) {
     const oThis = this;
     const response = [];
-    const dbRows = await oThis
+    let query = await oThis
       .select(
         "*, SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(highlighted_event_texts, '$[0]')), ' ', 1) AS txn_type"
       )
@@ -232,8 +236,16 @@ class TransactionsDetailsModel extends ModelBase {
       ])
       .offset(offset)
       .limit(limit)
-      .order_by("id asc")
-      .fire();
+      .order_by("id asc");
+
+    if (trainedTransactionHashesArray.length > 0) {
+      query = query.where([
+        "transaction_hash NOT IN (?)",
+        trainedTransactionHashesArray,
+      ]);
+    }
+
+    const dbRows = await query.fire();
 
     for (let index = 0; index < dbRows.length; index++) {
       const formatDbRow = oThis.formatDbData(dbRows[index]);
