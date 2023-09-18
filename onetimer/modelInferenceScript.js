@@ -16,6 +16,7 @@ class ModelInference {
 
     oThis.noOfInferences = 50;
     oThis.modelName = "ft:gpt-3.5-turbo-0613:true-sparrow::7z1pp4dl";
+    oThis.txnTypeLimit = oThis.noOfInferences / 9;
   }
 
   async perform() {
@@ -25,15 +26,23 @@ class ModelInference {
     const openai = new OpenAIApi();
 
     let fetchTransactionDetailObj = new TransactionDetailModel();
+    // let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetailsForAllNonDecodedEvents(
+    // let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetailsForSomeNonDecodedEvents(
     let transactionDetails = await fetchTransactionDetailObj.getRowsWithValidHighlightedEventTexts(
-      oThis.noOfInferences,
+      oThis.noOfInferences * 100,
       0,
       trainedTransactionsArray
     );
 
+    console.log("transactionDetails length", transactionDetails.length);
+
+    const processedTransactions = await oThis.processTransactions(
+      transactionDetails
+    );
+
     const dataForCsv = [];
 
-    for (let txDetail of transactionDetails) {
+    for (let txDetail of processedTransactions) {
       console.log("Transaction hash: ", txDetail.data.hash);
       const transactionDetails = oThis.getTransactionDetails(txDetail);
       const prompt = oThis.generatePrompt(transactionDetails);
@@ -64,13 +73,18 @@ class ModelInference {
       //   ],
       // };
 
+      console.log("completion.choices[0]: ", completion.choices[0]);
+
       const completionText = completion.choices[0].message.content;
 
-      const parsedCompletionText = JSON.parse(completionText);
+      let parsedCompletionText = null;
 
-      console.log("Completion Text", parsedCompletionText);
-
-      console.log("Expected Output", transactionDetails.output);
+      try {
+        parsedCompletionText = JSON.parse(completionText);
+      } catch (error) {
+        console.log("Error in parsing completion text: ", error);
+        continue;
+      }
 
       const isMatch = oThis.matchResult(
         parsedCompletionText,
@@ -82,7 +96,7 @@ class ModelInference {
         systemPrompt: prompt.messages[0].content,
         userPrompt: prompt.messages[1].content,
         transactionHash: transactionDetails.transactions.hash,
-        transactionType: transactionDetails.transactions.type,
+        transactionType: txDetail.txnType,
         trainedModelOutput: parsedCompletionText,
         expectedOutput: transactionDetails.output,
         isSame: isMatch,
@@ -218,6 +232,40 @@ class ModelInference {
     } catch (error) {
       console.error("Error writing CSV:", error);
     }
+  }
+
+  async processTransactions(transactionDetails) {
+    const oThis = this;
+
+    let txnTypeToCountMap = {},
+      transactionsArr = [],
+      totalProcessedTransactions = 0;
+
+    for (let txDetail of transactionDetails) {
+      if (totalProcessedTransactions >= oThis.noOfInferences) {
+        break;
+      }
+
+      if (txnTypeToCountMap[txDetail.txnType]) {
+        if (txnTypeToCountMap[txDetail.txnType] >= oThis.txnTypeLimit) {
+          continue;
+        }
+
+        txnTypeToCountMap[txDetail.txnType] =
+          txnTypeToCountMap[txDetail.txnType] + 1;
+      } else {
+        txnTypeToCountMap[txDetail.txnType] = 1;
+      }
+
+      transactionsArr.push(txDetail);
+      console.log("Transaction hash: ", txDetail.data.hash);
+      totalProcessedTransactions++;
+    }
+
+    console.log("Total transactions: ", transactionsArr.length);
+    console.log("txnTypeToCountMap: ", txnTypeToCountMap);
+
+    return transactionsArr;
   }
 }
 

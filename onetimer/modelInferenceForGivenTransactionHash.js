@@ -1,4 +1,7 @@
 const OpenAIApi = require("openai");
+const fs = require("fs");
+const path = require("path");
+const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
 const rootPrefix = "..",
   TransactionDetailModel = require(rootPrefix +
@@ -26,10 +29,12 @@ class ModelInference {
       "0xd0200aac2f599055344e1509ea5adb1e25d666b81a99a98bcd53afd865276b0b"
     );
 
+    const dataForCsv = [];
+
     for (let txDetail of transactionDetails) {
       console.log("Transaction hash: ", txDetail.data.hash);
-      const trainingDataDetail = oThis.getTrainingDataDetail(txDetail);
-      const prompt = oThis.generatePrompt(trainingDataDetail);
+      const transactionDetails = oThis.getTransactionDetails(txDetail);
+      const prompt = oThis.generatePrompt(transactionDetails);
 
       console.log("Prompt\n", prompt.messages[1].content);
 
@@ -46,14 +51,10 @@ class ModelInference {
 
       console.log("Expected Output:\n", trainingDataDetail.output);
 
-      // Compare parsedCompletionText with trainingDataDetail.output
-      let isMatch = true;
-      for (let i = 0; i < parsedCompletionText.length; i++) {
-        if (parsedCompletionText[i] != trainingDataDetail.output[i]) {
-          isMatch = false;
-          break;
-        }
-      }
+      const isMatch = oThis.matchResult(
+        parsedCompletionText,
+        transactionDetails.output
+      );
 
       if (isMatch) {
         console.log("Matched");
@@ -64,7 +65,7 @@ class ModelInference {
     console.log("----------------End Perform------------------");
   }
 
-  getTrainingDataDetail(txDetail) {
+  getTransactionDetails(txDetail) {
     // Format decoded logs
     let decodedLogs = [];
     for (let item of txDetail.logsData.items) {
@@ -91,7 +92,7 @@ class ModelInference {
       has_error_in_internal_txs: txDetail.data.has_error_in_internal_txs,
     };
 
-    const trainingDataDetail = {
+    const transactionDetails = {
       id: txDetail.id,
       event_logs: decodedLogs,
       token_transfers: txDetail.data.token_transfers,
@@ -99,7 +100,7 @@ class ModelInference {
       output: txDetail.highlightedEventTexts,
     };
 
-    return trainingDataDetail;
+    return transactionDetails;
   }
 
   generatePrompt(trainingDataItem) {
@@ -107,21 +108,88 @@ class ModelInference {
       messages: [
         {
           role: "system",
-          content: `You are an expert in Ethereum blockchain and its various protocols and smart contracts with specialization in understanding Ethereum transactions, event logs, and token transfers. Your primary task is to meticulously analyze Ethereum blockchain transactions and generate concise one-line summaries. 
-Your analysis should include inspecting token transfers to craft desired summaries as the event logs might not always be decoded.Pay close attention to intelligently group related events into one primary action. If a transaction contains multiple groupings of the same events or different unrelated events that hold critical importance, create one-line summaries for each distinct grouping of events to ensure all relevant details are captured effectively.
-Additionally, it is crucial to ensure accurate representation of token and total values based on their associated decimal places. Your focus should be on delivering clear and concise summaries that extract essential information from the transactions`,
+          content: JSON.stringify(
+            `You are an expert in Ethereum blockchain and its various protocols and smart contracts with specialization in understanding Ethereum transactions, event logs, and token transfers. Your primary task is to meticulously analyze Ethereum blockchain transactions and generate concise one-line summaries. Your analysis should include inspecting token transfers to craft desired summaries as the event logs might not always be decoded.Pay close attention to intelligently group related events into one primary action. If a transaction contains multiple groupings of the same events or different unrelated events that hold critical importance, create one-line summaries for each distinct grouping of events to ensure all relevant details are captured effectively.Additionally, it is crucial to ensure accurate representation of token and total values based on their associated decimal places. Your focus should be on delivering clear and concise summaries that extract essential information from the transactions`
+          ),
         },
         {
           role: "user",
           content: JSON.stringify({
-            event_logs: trainingDataItem.event_logs,
-            token_transfers: trainingDataItem.token_transfers,
-            transactions: trainingDataItem.transactions,
+            event_logs: JSON.stringify(trainingDataItem.event_logs),
+            token_transfers: JSON.stringify(trainingDataItem.token_transfers),
+            transactions: JSON.stringify(trainingDataItem.transactions),
           }),
         },
       ],
     };
     return prompt;
+  }
+
+  matchResult(actual, expected) {
+    if (actual.length !== expected.length) {
+      return false;
+    }
+    return actual.every((value, index) => value === expected[index]);
+  }
+
+  createCsvString(data) {
+    // Define the CSV header row
+    const header = [
+      "Model Name",
+      "System Prompt",
+      "User Prompt",
+      "Transaction Hash",
+      "Transaction Type",
+      "Trained Model Output",
+      "Expected Output",
+      "Is it Same",
+    ].join("*");
+
+    // Create an array of data rows
+    const rows = data.map((item) =>
+      [
+        item.modelName,
+        item.systemPrompt,
+        item.userPrompt,
+        item.transactionHash,
+        item.transactionType,
+        item.trainedModelOutput.join(";"),
+        item.expectedOutput.join(";"),
+        item.isSame ? "Yes" : "No",
+      ].join("*")
+    );
+
+    // Combine the header and rows to create the CSV string
+    const csvString = [header, ...rows].join("\n");
+
+    return csvString;
+  }
+
+  writeDataToCsvFile(data) {
+    const oThis = this;
+
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/:/g, "-")
+      .replace(/\..+/, "");
+    const directory = "./onetimer/output";
+
+    if (!fs.existsSync(directory)) {
+      fs.mkdirSync(directory, { recursive: true });
+    }
+
+    const csvFileName = `model_inference_output_${timestamp}.csv`;
+    const csvFilePath = path.join(directory, csvFileName);
+
+    const csvString = oThis.createCsvString(data);
+
+    try {
+      // Write the CSV string to the file synchronously
+      fs.writeFileSync(csvFilePath, csvString);
+      console.log("CSV file has been written successfully");
+    } catch (error) {
+      console.error("Error writing CSV:", error);
+    }
   }
 }
 

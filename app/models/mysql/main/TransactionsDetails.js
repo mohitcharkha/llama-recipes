@@ -277,6 +277,83 @@ class TransactionsDetailsModel extends ModelBase {
 
     return response;
   }
+
+  async getValidTransactionDetailsForAllNonDecodedEvents(
+    limit,
+    offset,
+    trainedTransactionHashesArray
+  ) {
+    const oThis = this;
+    const response = [];
+    let query = await oThis
+      .select(
+        "*, SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(highlighted_event_texts, '$[0]')), ' ', 1) AS txn_type"
+      )
+      .where([
+        "highlighted_event_texts is not null and highlighted_event_status = 'SUCCESS' and status = 'SUCCESS' and  total_events >0 and total_decoded_events = 0",
+      ])
+      .offset(offset)
+      .limit(limit)
+      .order_by("id asc");
+
+    if (trainedTransactionHashesArray.length > 0) {
+      query = query.where([
+        "transaction_hash NOT IN (?)",
+        trainedTransactionHashesArray,
+      ]);
+    }
+
+    const dbRows = await query.fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }
+
+  async getValidTransactionDetailsForSomeNonDecodedEvents(
+    limit,
+    offset,
+    trainedTransactionHashesArray
+  ) {
+    const oThis = this;
+    const response = [];
+    let query = await oThis
+      .select(
+        "*, SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(highlighted_event_texts, '$[0]')), ' ', 1) AS txn_type"
+      )
+      .where([
+        "highlighted_event_texts is not null and highlighted_event_status = 'SUCCESS' and status = 'SUCCESS' and total_events >0 and total_decoded_events > 0 and total_decoded_events != total_events",
+      ])
+      // .where([
+      //   "transaction_hash IN (?)",
+      //   [
+      //     "0x22774c3b3705e5f0bd1c70e266dc62475a6860bd620fe93e8071590d77f08032",
+      //     "0x5869eef6a8f997319a0a960e0b069d62c36663fe74a77ddb09645bd7e1905819",
+      //   ],
+      // ])
+      .offset(offset)
+      .limit(limit)
+      .order_by("id asc");
+
+    if (trainedTransactionHashesArray.length > 0) {
+      query = query.where([
+        "transaction_hash NOT IN (?)",
+        trainedTransactionHashesArray,
+      ]);
+    }
+
+    const dbRows = await query.fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }
 }
 
 module.exports = TransactionsDetailsModel;
