@@ -140,6 +140,29 @@ class TransactionsDetailsModel extends ModelBase {
   }
 
   /**
+   * This method gets the transactions by transaction_hash
+   *
+   * @param {string} transactionHash
+   *
+   * @returns {Promise<Map>}
+   *
+   */
+  async getByTransactionHash(transactionHash) {
+    const oThis = this;
+    const response = [];
+    const dbRows = await oThis
+      .select("*")
+      .where({ transaction_hash: transactionHash })
+      .fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+    return response;
+  }
+
+  /**
    * This method gets the transactions in a blockNumber.
    *
    * @param {integer} blockNumber

@@ -11,7 +11,6 @@ class ModelInference {
   constructor() {
     const oThis = this;
 
-    oThis.noOfInferences = 1;
     oThis.modelName = "ft:gpt-3.5-turbo-0613:true-sparrow::7z1pp4dl";
   }
 
@@ -22,10 +21,9 @@ class ModelInference {
     const openai = new OpenAIApi();
 
     let fetchTransactionDetailObj = new TransactionDetailModel();
-    let transactionDetails = await fetchTransactionDetailObj.getRowsWithValidHighlightedEventTexts(
-      oThis.noOfInferences,
-      0,
-      trainedTransactionsArray
+
+    let transactionDetails = await fetchTransactionDetailObj.getByTransactionHash(
+      "0xd0200aac2f599055344e1509ea5adb1e25d666b81a99a98bcd53afd865276b0b"
     );
 
     for (let txDetail of transactionDetails) {
@@ -33,20 +31,20 @@ class ModelInference {
       const trainingDataDetail = oThis.getTrainingDataDetail(txDetail);
       const prompt = oThis.generatePrompt(trainingDataDetail);
 
+      console.log("Prompt\n", prompt.messages[1].content);
+
       const completion = await openai.chat.completions.create({
         messages: prompt.messages,
         model: oThis.modelName,
       });
 
-      console.log("Completion from openAi", completion.choices[0]);
-
       const completionText = completion.choices[0].message.content;
 
       const parsedCompletionText = JSON.parse(completionText);
 
-      console.log("Completion Text", parsedCompletionText);
+      console.log("\nModel Output:\n", parsedCompletionText);
 
-      console.log("Expected Output", trainingDataDetail.output);
+      console.log("Expected Output:\n", trainingDataDetail.output);
 
       // Compare parsedCompletionText with trainingDataDetail.output
       let isMatch = true;
@@ -62,10 +60,8 @@ class ModelInference {
       } else {
         console.log("Not Matched");
       }
-
-      console.log("-----------------------------------------------------");
     }
-    console.log("End Perform");
+    console.log("----------------End Perform------------------");
   }
 
   getTrainingDataDetail(txDetail) {
