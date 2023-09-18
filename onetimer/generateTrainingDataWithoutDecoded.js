@@ -36,8 +36,6 @@ class GenerateTrainingData {
     let transactionHashes = [];
 
     while (true) {
-      console.log("Current offset: ", offset);
-
       let fetchTransactionDetailObj = new TransactionDetailModel();
       let transactionDetails = await fetchTransactionDetailObj.getRowsWithValidHighlightedEventTexts(
         limit,
