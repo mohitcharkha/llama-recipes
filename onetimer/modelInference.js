@@ -7,11 +7,11 @@ const rootPrefix = "..",
   trainedTransactionsArray = require(rootPrefix +
     "/lib/trainedTransactionsArray");
 
-class GenerateHighlightedEvents {
+class ModelInference {
   constructor() {
     const oThis = this;
 
-    oThis.noOfInferences = 10;
+    oThis.noOfInferences = 1;
     oThis.modelName = "ft:gpt-3.5-turbo-0613:true-sparrow::7z1pp4dl";
   }
 
@@ -39,6 +39,31 @@ class GenerateHighlightedEvents {
       });
 
       console.log("Completion from openAi", completion.choices[0]);
+
+      const completionText = completion.choices[0].message.content;
+
+      const parsedCompletionText = JSON.parse(completionText);
+
+      console.log("Completion Text", parsedCompletionText);
+
+      console.log("Expected Output", trainingDataDetail.output);
+
+      // Compare parsedCompletionText with trainingDataDetail.output
+      let isMatch = true;
+      for (let i = 0; i < parsedCompletionText.length; i++) {
+        if (parsedCompletionText[i] != trainingDataDetail.output[i]) {
+          isMatch = false;
+          break;
+        }
+      }
+
+      if (isMatch) {
+        console.log("Matched");
+      } else {
+        console.log("Not Matched");
+      }
+
+      console.log("-----------------------------------------------------");
     }
     console.log("End Perform");
   }
@@ -75,6 +100,7 @@ class GenerateHighlightedEvents {
       event_logs: decodedLogs,
       token_transfers: txDetail.data.token_transfers,
       transactions: transactions,
+      output: txDetail.highlightedEventTexts,
     };
 
     return trainingDataDetail;
@@ -103,7 +129,7 @@ Additionally, it is crucial to ensure accurate representation of token and total
   }
 }
 
-const generateHighlightedEvents = new GenerateHighlightedEvents();
+const generateHighlightedEvents = new ModelInference();
 
 generateHighlightedEvents
   .perform()
