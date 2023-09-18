@@ -14,7 +14,7 @@ class ModelInference {
   constructor() {
     const oThis = this;
 
-    oThis.noOfInferences = 5;
+    oThis.noOfInferences = 50;
     oThis.modelName = "ft:gpt-3.5-turbo-0613:true-sparrow::7z1pp4dl";
   }
 
@@ -38,10 +38,17 @@ class ModelInference {
       const transactionDetails = oThis.getTransactionDetails(txDetail);
       const prompt = oThis.generatePrompt(transactionDetails);
 
-      const completion = await openai.chat.completions.create({
-        messages: prompt.messages,
-        model: oThis.modelName,
-      });
+      let completion = null;
+
+      try {
+        completion = await openai.chat.completions.create({
+          messages: prompt.messages,
+          model: oThis.modelName,
+        });
+      } catch (error) {
+        console.log("Error in completion: ", error);
+        continue;
+      }
 
       // const completion = {
       //   choices: [
