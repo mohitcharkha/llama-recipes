@@ -99,7 +99,19 @@ class GenerateTrainingData {
     }
     console.log("Total count of transactions: ", totalCount);
 
-    console.log("transactionHashes: ", transactionHashes);
+    // Write transaction hashes to file
+    try {
+      const data = JSON.stringify(transactionHashes) + "\n";
+      writeFileSync(
+        join(__dirname, "transaction_hashes_for_without_decoded.json"),
+        data,
+        {
+          flag: "a+",
+        }
+      );
+    } catch (error) {
+      console.error(error.message);
+    }
 
     console.log("End Perform");
   }
