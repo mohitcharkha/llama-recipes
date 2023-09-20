@@ -377,7 +377,8 @@ class TransactionsDetailsModel extends ModelBase {
       //   ],
       // ])
       .offset(offset)
-      .limit(limit);
+      .limit(limit)
+      .order_by("rand()");
 
     if (trainedTransactionHashesArray.length > 0) {
       query = query.where([
