@@ -8,7 +8,7 @@ const rootPrefix = "..",
     "/app/models/mysql/main/TransactionsDetails"),
   coreConstants = require(rootPrefix + "/config/coreConstants"),
   trainedTransactionsArray = require(rootPrefix +
-    "/lib/trainedTransactionsArray");
+    "/lib/allDecodedTrainedTransactionsArray.json");
 
 class ModelInference {
   constructor() {
