@@ -37,7 +37,7 @@ class GenerateTrainingData {
 
     while (true) {
       let fetchTransactionDetailObj = new TransactionDetailModel();
-      let transactionDetails = await fetchTransactionDetailObj.getRowsWithValidHighlightedEventTexts(
+      let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetails(
         limit,
         offset,
         []

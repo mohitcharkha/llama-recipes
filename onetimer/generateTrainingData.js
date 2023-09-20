@@ -37,9 +37,10 @@ class GenerateTrainingData {
       console.log("Current offset: ", offset);
 
       let fetchTransactionDetailObj = new TransactionDetailModel();
-      let transactionDetails = await fetchTransactionDetailObj.getRowsWithValidHighlightedEventTexts(
+      let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetailsForZeroNonDecodedEvents(
         limit,
-        offset
+        offset,
+        []
       );
 
       if (transactionDetails.length == 0) {

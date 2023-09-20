@@ -28,7 +28,7 @@ class ModelInference {
     let fetchTransactionDetailObj = new TransactionDetailModel();
     // let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetailsForAllNonDecodedEvents(
     // let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetailsForSomeNonDecodedEvents(
-    let transactionDetails = await fetchTransactionDetailObj.getRowsWithValidHighlightedEventTexts(
+    let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetailsForZeroNonDecodedEvents(
       oThis.noOfInferences * 100,
       0,
       trainedTransactionsArray
