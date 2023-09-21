@@ -22,7 +22,8 @@ const mysqlConfig = {
       master: {
         host: coreConstants.MAIN_DB_MYSQL_HOST,
         user: coreConstants.MAIN_DB_MYSQL_USER,
-        password: coreConstants.MAIN_DB_MYSQL_PASSWORD
+        password: coreConstants.MAIN_DB_MYSQL_PASSWORD,
+        port: coreConstants.MAIN_DB_MYSQL_PORT
       }
     }
   },

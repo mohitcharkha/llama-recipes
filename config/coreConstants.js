@@ -41,6 +41,10 @@ class CoreConstants {
   get MAIN_DB_MYSQL_PASSWORD() {
     return process.env.A_MAIN_DB_MYSQL_PASSWORD;
   }
+
+  get MAIN_DB_MYSQL_PORT() {
+    return process.env.A_MAIN_DB_MYSQL_PORT;
+  }
 }
 
 module.exports = new CoreConstants();

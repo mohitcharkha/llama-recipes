@@ -31,7 +31,7 @@ class PopulateTransactionsDataFromBlockscout {
 
     const blockNumbersData = await transactionDetailObj.getMaxAndMinBlockNumberWithoutLogs();
     const startBlockNumber = blockNumbersData.minBlockNumber;
-    const endBlockNumber = blockNumbersData.maxBlockNumber;
+    const endBlockNumber = 17696000;
 
     let currentBlockNumber = parseInt(startBlockNumber);
 

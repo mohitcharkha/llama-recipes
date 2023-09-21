@@ -29,7 +29,9 @@ class PopulateHighlightedEvent {
     const startBlockNumber = blockNumbersData.minBlockNumber; // replace with min block number 
     const endBlockNumber = blockNumbersData.maxBlockNumber; // replace with max block number
 
-    let currentBlock = parseInt(startBlockNumber);
+    console.log("blockNumbersData", blockNumbersData);
+
+    let currentBlock = parseInt(startBlockNumber) + 4000;
 
     while (currentBlock <= endBlockNumber) {
       console.log("Current block number: ", currentBlock);
@@ -44,7 +46,7 @@ class PopulateHighlightedEvent {
         console.log('highlightedEvents: ', tx.id);
           let updateTransactionDetailObj = new TransactionDetailModel();
           await updateTransactionDetailObj.updateById(tx.id, highlightedEvents);
-        await basicHelper.sleep(50);
+        await basicHelper.sleep(2000);
       }
       currentBlock = offset + currentBlock;
     }

@@ -52,7 +52,7 @@ and total_decoded_events = total_events;
 ;
 ```
 
-### Report: first word from text summaries with count + more than 1 event
+### Report: first word from text summaries with count + more than 1 event (part 1) - without basic eth
 ```bash
 
 SELECT
@@ -67,3 +67,25 @@ GROUP BY
 ORDER BY
     count DESC;
 ```    
+
+### Report: first word from text summaries with count + more than 1 event + all events decoded (2c)
+```bash
+
+SELECT
+    SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(highlighted_event_texts, '$[0]')), ' ', 1) AS firstWord,
+    COUNT(*) AS count
+FROM
+(select * from transactions_details where 
+highlighted_event_texts is not null 
+and highlighted_event_status = "SUCCESS" and status = 'SUCCESS' and total_events >0 
+and total_decoded_events = total_events) as a
+GROUP BY
+    firstWord
+ORDER BY
+    count DESC;
+```    
+
+### Report: Fetch Count of text summaries
+```bash
+SELECT JSON_LENGTH(highlighted_event_texts) from transactions_details;
+```
