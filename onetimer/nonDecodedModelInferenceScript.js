@@ -8,7 +8,9 @@ const rootPrefix = "..",
     "/app/models/mysql/main/TransactionsDetails"),
   coreConstants = require(rootPrefix + "/config/coreConstants"),
   trainedTransactionsArray = require(rootPrefix +
-    "/lib/nonDecodedTrainedTransactionsArray.json");
+    "/lib/nonDecodedTrainedTransactionsArray.json"),
+  inferencedTransactionsArray = require(rootPrefix +
+    "/lib/nonDecodedInference-1-TransactionsArray.json");
 
 class ModelInference {
   constructor() {
@@ -42,7 +44,7 @@ class ModelInference {
     oThis.noOfInferences = 1;
     oThis.modelName =
       "ft:gpt-3.5-turbo-0613:true-sparrow:without-decoded:80BWQXx9";
-    oThis.txnTypeLimit = oThis.noOfInferences / 14;
+    oThis.txnTypeLimit = oThis.noOfInferences / 5;
   }
 
   async perform() {
@@ -51,13 +53,17 @@ class ModelInference {
 
     const openai = new OpenAIApi();
 
+    const omitTransactionHashes = trainedTransactionsArray.concat(
+      inferencedTransactionsArray
+    );
+
     let fetchTransactionDetailObj = new TransactionDetailModel();
     let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetails(
       // let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetailsForSomeNonDecodedEvents(
       // let transactionDetails = await fetchTransactionDetailObj.getValidTransactionDetailsForZeroNonDecodedEvents(
-      oThis.noOfInferences * 500,
+      oThis.noOfInferences * 100,
       0,
-      trainedTransactionsArray
+      omitTransactionHashes
     );
 
     console.log("transactionDetails length", transactionDetails.length);
@@ -69,7 +75,6 @@ class ModelInference {
     const dataForCsv = [];
 
     for (let txDetail of processedTransactions) {
-      console.log("Transaction hash: ", txDetail.data.hash);
       const transactionDetails = oThis.getTransactionDetails(txDetail);
       const prompt = oThis.generatePrompt(transactionDetails);
 
@@ -81,9 +86,16 @@ class ModelInference {
           model: oThis.modelName,
         });
       } catch (error) {
-        console.log("Error in completion: ", error);
+        console.log(
+          "Error in completion for hash:",
+          txDetail.data.hash,
+          "Error:",
+          error.code
+        );
         continue;
       }
+
+      console.log("Transaction hash: ", txDetail.data.hash);
 
       // completion = {
       //   choices: [
@@ -98,8 +110,6 @@ class ModelInference {
       //     },
       //   ],
       // };
-
-      console.log("completion.choices[0]: ", completion.choices[0]);
 
       const completionText = completion.choices[0].message.content;
 
@@ -122,6 +132,11 @@ class ModelInference {
         transactionDetails.output
       );
 
+      const isClassificationMatching = oThis.isClassificationMatching(
+        parsedCompletionText,
+        transactionDetails.output
+      );
+
       const data = {
         modelName: oThis.modelName,
         systemPrompt: prompt.messages[0].content,
@@ -132,6 +147,8 @@ class ModelInference {
         expectedOutput: transactionDetails.output,
         isExactSame: isExactMatch,
         isSame: isMatch,
+        noOfSummaries: transactionDetails.output.length,
+        isClassificationMatching: isClassificationMatching,
       };
 
       dataForCsv.push(data);
@@ -222,6 +239,27 @@ class ModelInference {
     return actual === expected;
   }
 
+  isClassificationMatching(actual, expected) {
+    const oThis = this;
+
+    let actualFirstWords = [],
+      expectedFirstWords = [];
+
+    for (let i = 0; i < actual.length; i++) {
+      actualFirstWords.push(oThis.getFirstWord(actual[i]));
+    }
+
+    for (let i = 0; i < expected.length; i++) {
+      expectedFirstWords.push(oThis.getFirstWord(expected[i]));
+    }
+
+    return oThis.isExactMatch(actualFirstWords, expectedFirstWords);
+  }
+
+  getFirstWord(str) {
+    return str.split(" ")[0];
+  }
+
   removeNumbersSeparatedByCommaOrPeriod(input) {
     // Use regular expression to match numbers separated by , or .
     const regex = /\d+(?:[,.]\d+)*/g;
@@ -243,6 +281,8 @@ class ModelInference {
       "Expected Output",
       "Is it exactly same",
       "Is it Same",
+      "No Of Summaries",
+      "Is Classification matching",
     ].join("*");
 
     // Create an array of data rows
@@ -257,6 +297,8 @@ class ModelInference {
         item.expectedOutput.join(";"),
         item.isExactSame ? "Yes" : "No",
         item.isSame ? "Yes" : "No",
+        item.noOfSummaries,
+        item.isClassificationMatching ? "Yes" : "No",
       ].join("*")
     );
 
@@ -319,7 +361,6 @@ class ModelInference {
       }
 
       transactionsArr.push(txDetail);
-      console.log("Transaction hash: ", txDetail.data.hash);
       totalProcessedTransactions++;
     }
 
