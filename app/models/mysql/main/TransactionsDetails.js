@@ -43,14 +43,14 @@ class TransactionsDetailsModel extends ModelBase {
       status: dbRow.status,
       transactionHash: dbRow.transaction_hash,
       blockNumber: dbRow.block_number,
-      data: JSON.parse(dbRow.data),
-      logsData: JSON.parse(dbRow.logs_data),
+      data: dbRow.data ? JSON.parse(dbRow.data) : null,
+      logsData: dbRow.logs_data ? JSON.parse(dbRow.logs_data) : null,
       highlightedEventStatus: dbRow.highlighted_event_status,
       highlightedEventHtml: dbRow.highlighted_event_html,
-      highlightedEventTexts: JSON.parse(dbRow.highlighted_event_texts),
+      highlightedEventTexts: dbRow.highlighted_event_texts ? JSON.parse(dbRow.highlighted_event_texts) : null,
       highlightedEventContractAddress: dbRow.highlighted_event_contract_address,
       highlightedEventMethodName: dbRow.highlighted_event_method_name,
-      highlightedEventExtraData: JSON.parse(dbRow.highlighted_event_extra_data),
+      highlightedEventExtraData: dbRow.highlighted_event_extra_data ? JSON.parse(dbRow.highlighted_event_extra_data) : null,
       isHighlightedEventDecoded: dbRow.is_highlighted_event_decoded,
       totalEvents: dbRow.total_events,
       totalDecodedEvents: dbRow.total_decoded_events,
@@ -150,8 +150,9 @@ class TransactionsDetailsModel extends ModelBase {
     const oThis = this;
     const response = [];
     const dbRows = await oThis
-      .select("*")
+      .select(["id", "transaction_hash"])
       .where(["status = ?", transactionDetailsConstants.pendingStatus])
+      // .where("id >= 100000")
       .limit(limit)
       .fire();
 
@@ -203,6 +204,7 @@ class TransactionsDetailsModel extends ModelBase {
         "highlighted_event_status = ?",
         transactionDetailsConstants.pendingHighlightedEventStatus,
       ])
+      // .where("id >= 100000")
       .limit(limit)
       .fire();
 
