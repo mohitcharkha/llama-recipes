@@ -146,10 +146,10 @@ extractTextFromElement(html) {
     return { texts: textResults };
   }
 
-  let targetElement = htmlObj('span[data-bs-title^="0x"]').filter(function(f) {
+  let targetElement = htmlObj('span[data-bs-title^="0x"].badge').filter(function(f) {
     return /^(\w+\s*)+$/.test(htmlObj(this).text().trim());
   });
-  
+
   // Extract the values
   let spanText = targetElement.text().trim();  // This will give you "Transfer" or any other text contained in the span
   if(spanText){
