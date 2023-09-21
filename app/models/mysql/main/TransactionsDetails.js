@@ -396,6 +396,15 @@ class TransactionsDetailsModel extends ModelBase {
 
     return response;
   }
+
+  async updateByTxHash(txHash, updateParams) {
+    const oThis = this;
+
+    await oThis
+      .update(updateParams)
+      .where({ transaction_hash: txHash })
+      .fire();
+  }
 }
 
 module.exports = TransactionsDetailsModel;
