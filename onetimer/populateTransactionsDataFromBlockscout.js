@@ -11,12 +11,14 @@
 const rootPrefix = "..",
   httpRequest = require(rootPrefix + "/lib/HttpRequest"),
   basicHelper = require(rootPrefix + "/helpers/basic"),
-  TransactionDetailModel = require(rootPrefix + "/app/models/mysql/main/TransactionsDetails"),
+  TransactionDetailModel = require(rootPrefix +
+    "/app/models/mysql/main/TransactionsDetails"),
   transactionDetailsConstants = require(rootPrefix +
     "/lib/globalConstant/transactionDetails");
 
 const BASE_ENDPOINT = "https://eth.blockscout.com/api/v2/";
-const offset = 4000;
+
+const batchSize = 100;
 
 class PopulateTransactionsDataFromBlockscout {
   constructor() {}
@@ -24,55 +26,59 @@ class PopulateTransactionsDataFromBlockscout {
   async perform() {
     let oThis = this;
     console.log("Start Perform");
-    let transactionDetailObj = new TransactionDetailModel();
-    
+
     // Fetch all valid transactions
     console.log("Fetching all valid transactions....");
+    let batchCounter = 1;
 
-    const blockNumbersData = await transactionDetailObj.getMaxAndMinBlockNumberWithoutLogs();
-    const startBlockNumber = blockNumbersData.minBlockNumber;
-    const endBlockNumber = 17696000;
+    while (true) {
+      console.log("Batch no: ", batchCounter++);
 
-    let currentBlockNumber = parseInt(startBlockNumber);
-
-    while (currentBlockNumber <= endBlockNumber) {
-      console.log("Current block number: ", currentBlockNumber);
       let transactionDetailObj = new TransactionDetailModel();
-      let transactionDetails = await transactionDetailObj.getRowsByBlockNumber(
-        currentBlockNumber
+      let transactionDetails = await transactionDetailObj.getRowsByPendingStatus(
+        batchSize
       );
+
+      console.log("transactionDetails count: ", transactionDetails.length);
+      if (transactionDetails.length === 0) {
+        console.log("No pending transactions found");
+        break;
+      }
 
       for (let i = 0; i < transactionDetails.length; i++) {
         const transactionDetail = transactionDetails[i];
         const transactionHash = transactionDetail.transactionHash;
 
-        console.log("Fetching transaction logs for transactionHash: ",transactionHash, transactionDetail.id);
+        console.log(
+          "Fetching transaction logs for transactionHash: ",
+          transactionHash,
+          transactionDetail.id
+        );
 
-        const transactionLogsData = await this.fetchTransactionLogs(transactionHash);
-        const transactionInfoData = await this.fetchTransactionInfo(transactionHash);
+        const transactionLogsData = await this.fetchTransactionLogs(
+          transactionHash
+        );
+        const transactionInfoData = await this.fetchTransactionInfo(
+          transactionHash
+        );
 
         // append different status for empty and non-empty transaction logs/info data
-        let status =
-       !transactionInfoData.hash
-            ? transactionDetailsConstants.failedStatus
-            : transactionDetailsConstants.successStatus;  
+        let status = !transactionInfoData.hash
+          ? transactionDetailsConstants.failedStatus
+          : transactionDetailsConstants.successStatus;
 
-        if (transactionInfoData.raw_input == '0x') {
-          status = transactionDetailsConstants.ignoreStatus;  
+        if (transactionInfoData.raw_input == "0x") {
+          status = transactionDetailsConstants.ignoreStatus;
         }
 
-      console.log("Update transaction details in DB....");
-      let transactionDetailObj = new TransactionDetailModel();
-      await transactionDetailObj.updateById( transactionDetail.id,
-        {
-          data:  JSON.stringify(transactionInfoData || {}),
-          logs_data:  JSON.stringify(transactionLogsData || {}),
-          status: status
-        }
-      );
+        console.log("Update transaction details in DB....");
+        let transactionDetailObj = new TransactionDetailModel();
+        await transactionDetailObj.updateById(transactionDetail.id, {
+          data: JSON.stringify(transactionInfoData || {}),
+          logs_data: JSON.stringify(transactionLogsData || {}),
+          status: status,
+        });
       }
-
-      currentBlockNumber = offset + currentBlockNumber;
     }
     console.log("End Perform");
   }
@@ -89,15 +95,18 @@ class PopulateTransactionsDataFromBlockscout {
     let req = new httpRequest({ resource: endpoint, header: {} });
     let response = await req.get();
 
-    if (response.data.response.status == 429){
-      console.log('Sleep for 20 sec \n 302 error -- data: ', response.data);
+    if (response.data.response.status == 429) {
+      console.log("Sleep for 20 sec \n 302 error -- data: ", response.data);
       await basicHelper.sleep(20000);
       let req2 = new httpRequest({ resource: endpoint, header: {} });
       response = await req2.get();
     }
 
     if (response.data.response.status !== 200) {
-      console.error("Error in fetching transaction logs for txHash: ", transactionHash);
+      console.error(
+        "Error in fetching transaction logs for txHash: ",
+        transactionHash
+      );
       return Promise.reject(response.data);
     }
 
@@ -113,29 +122,30 @@ class PopulateTransactionsDataFromBlockscout {
    * @param {string} transactionHash
    * @returns {Promise<*>}
    */
-    async fetchTransactionInfo(transactionHash) {
-      let oThis = this;
-      const endpoint = BASE_ENDPOINT + `transactions/${transactionHash}`;
-      let req = new httpRequest({ resource: endpoint, header: {} });
-      let response = await req.get();
-  
-  
-      if (response.data.response.status == 429){
-        console.log('Sleep for 20 sec \n 429 error -- data: ', response.data);
-        await basicHelper.sleep(20000);
-        let req2 = new httpRequest({ resource: endpoint, header: {} });
-        response = await req2.get();
-      }
+  async fetchTransactionInfo(transactionHash) {
+    let oThis = this;
+    const endpoint = BASE_ENDPOINT + `transactions/${transactionHash}`;
+    let req = new httpRequest({ resource: endpoint, header: {} });
+    let response = await req.get();
 
-      if (response.data.response.status !== 200) {
-        console.error("Error in fetching transaction info for txHash: ", transactionHash);
-        return Promise.reject(response.data);
-      }
-  
-      await basicHelper.sleep(50);
-      return JSON.parse(response.data.responseData);
+    if (response.data.response.status == 429) {
+      console.log("Sleep for 20 sec \n 429 error -- data: ", response.data);
+      await basicHelper.sleep(20000);
+      let req2 = new httpRequest({ resource: endpoint, header: {} });
+      response = await req2.get();
     }
 
+    if (response.data.response.status !== 200) {
+      console.error(
+        "Error in fetching transaction info for txHash: ",
+        transactionHash
+      );
+      return Promise.reject(response.data);
+    }
+
+    await basicHelper.sleep(50);
+    return JSON.parse(response.data.responseData);
+  }
 }
 
 const populateTransactionsDataFromBlockscout = new PopulateTransactionsDataFromBlockscout();

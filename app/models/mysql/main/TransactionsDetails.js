@@ -140,6 +140,30 @@ class TransactionsDetailsModel extends ModelBase {
   }
 
   /**
+   * This method gets the pending transactions.
+   *
+   * @param {int} limit
+   *
+   * @returns {Promise<Map>}
+   */
+  async getRowsByPendingStatus(limit) {
+    const oThis = this;
+    const response = [];
+    const dbRows = await oThis
+      .select("*")
+      .where(["status = ?", transactionDetailsConstants.pendingStatus])
+      .limit(limit)
+      .fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }
+
+  /**
    * This method gets the transactions by transaction_hash
    *
    * @param {string} transactionHash
@@ -163,23 +187,23 @@ class TransactionsDetailsModel extends ModelBase {
   }
 
   /**
-   * This method gets the transactions in a blockNumber.
+   * This method gets the pending highlighted event transactions.
    *
-   * @param {integer} blockNumber
+   * @param {int} limit
    *
    * @returns {Promise<Map>}
    *
    */
-  async getRowsByBlockNumberForHighlightedEvent(blockNumber) {
+  async getRowsByPendingHighlightedEvent(limit) {
     const oThis = this;
     const response = [];
     const dbRows = await oThis
       .select("*")
-      .where({ block_number: blockNumber })
       .where([
         "highlighted_event_status = ?",
         transactionDetailsConstants.pendingHighlightedEventStatus,
       ])
+      .limit(limit)
       .fire();
 
     for (let index = 0; index < dbRows.length; index++) {
