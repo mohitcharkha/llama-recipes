@@ -199,7 +199,7 @@ class TransactionsDetailsModel extends ModelBase {
     const oThis = this;
     const response = [];
     const dbRows = await oThis
-      .select("*")
+      .select(["id", "transaction_hash"])
       .where([
         "highlighted_event_status = ?",
         transactionDetailsConstants.pendingHighlightedEventStatus,

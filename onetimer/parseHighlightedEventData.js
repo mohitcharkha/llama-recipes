@@ -147,8 +147,9 @@ extractTextFromElement(html) {
   }
 
   let targetElement = htmlObj('span[data-bs-title^="0x"]').filter(function(f) {
-    return /^(\w+)$/.test(htmlObj(this).text().trim());  // regex to match a single word
+    return /^(\w+\s*)+$/.test(htmlObj(this).text().trim());
   });
+  
   // Extract the values
   let spanText = targetElement.text().trim();  // This will give you "Transfer" or any other text contained in the span
   if(spanText){
