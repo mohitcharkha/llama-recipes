@@ -54,7 +54,7 @@ class TransactionsDetailsModel extends ModelBase {
       isHighlightedEventDecoded: dbRow.is_highlighted_event_decoded,
       totalEvents: dbRow.total_events,
       totalDecodedEvents: dbRow.total_decoded_events,
-      // tempLogsData: JSON.parse(dbRow.temp_logs_data),
+      tempLogsData: JSON.parse(dbRow.temp_logs_data),
     };
 
     if (dbRow.txn_type) {

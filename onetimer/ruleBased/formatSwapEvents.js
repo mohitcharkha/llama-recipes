@@ -259,12 +259,13 @@ class FormatSwapEvents {
     let fetchTransactionDetailObj = new TransactionDetailModel();
     let transactionDetails = await fetchTransactionDetailObj
       .select('*')
-      .where(['status = "SUCCESS"'])
-      .where(['highlighted_event_status = "SUCCESS"'])
-      // .where(['transaction_hash = "0xf56f7841deebc3dd7bf28259346003f2ec6ec19d90d21dda781e8310da90492d"'])
+      .where('highlighted_event_texts is not null')
+      // .where(['transaction_hash = "0x315fb023079d13ada260f39129b02fdec567923431ccb2658d6e1c78f17be85d"'])
       .limit(limit)
       .offset(offset)
       .fire();
+
+    console.log("transactionDetails", transactionDetails.length);
 
     let formattedTransactionDetails = [];
 
