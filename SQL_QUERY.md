@@ -110,3 +110,21 @@ set total_decoded_events = (
 UPDATE transactions_details
 set total_events =  JSON_LENGTH(JSON_EXTRACT(logs_data, '$.items'))
 ```bash
+
+### Multiple Summaries word count
+```bash
+SELECT
+    SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(highlighted_event_texts, '$[0]')), ' ', 1) AS firstWord,
+    COUNT(*) AS count
+FROM
+(select * from transactions_details where 
+highlighted_event_texts is not null 
+and transaction_hash is not null
+and JSON_LENGTH(highlighted_event_texts) > 1
+) as a
+GROUP BY
+    firstWord
+ORDER BY
+    count DESC; 
+```
+    
