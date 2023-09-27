@@ -79,11 +79,11 @@ class ConstructSummary {
         if (transferSummarry.type) {
           oThis.setAllCounts(transferSummarry, transferSummarry.kind);
         } else {
-          // Other types
-          // const approveSummarry = FormatApprovalEvents.perform(txDetail);
 
-          // console.log('approveSummarry: ', approveSummarry);
-          // oThis.setAllCounts(approveSummarry);
+          const approveSummarry = new FormatApprovalEvents().perform(txDetail);
+          if (approveSummarry.type) {
+            oThis.setAllCounts(approveSummarry, approveSummarry.kind);
+          }
 
           // const swapSummarry = oThis.formatSwapEventsObj.perform(txDetail);
           // oThis.setAllCounts(swapSummarry);
