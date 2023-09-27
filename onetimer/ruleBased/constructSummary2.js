@@ -74,20 +74,20 @@ class ConstructSummary {
         AllTranactionsCount++;
         
         console.log('txDetail.transactionHash: ', txDetail.transactionHash);
-
         const transferSummarry = new FormatTransferEvents().perform(txDetail);
 
         if (transferSummarry.type) {
-          oThis.setAllCounts(transferSummarry, 'Transfer');
+          oThis.setAllCounts(transferSummarry, transferSummarry.kind);
+        } else {
+          // Other types
+          // const approveSummarry = FormatApprovalEvents.perform(txDetail);
+
+          // console.log('approveSummarry: ', approveSummarry);
+          // oThis.setAllCounts(approveSummarry);
+
+          // const swapSummarry = oThis.formatSwapEventsObj.perform(txDetail);
+          // oThis.setAllCounts(swapSummarry);
         }
-        
-        // const approveSummarry = FormatApprovalEvents.perform(txDetail);
-
-        // console.log('approveSummarry: ', approveSummarry);
-        // oThis.setAllCounts(approveSummarry);
-
-        // const swapSummarry = oThis.formatSwapEventsObj.perform(txDetail);
-        // oThis.setAllCounts(swapSummarry);
 
       }
       offset = offset + limit;
@@ -98,20 +98,6 @@ class ConstructSummary {
      
     }
     console.log('::RESPONSE:: ', oThis.response);
-
-
-    // console.log('MatchCount: ', MatchCount);
-    // console.log('AllTranactionsCount: ', AllTranactionsCount);
-    // console.log('Other: ', Other);
-    // console.log('ZeroEvents: ', ZeroEvents);
-    // console.log('EventsNotDecoded: ', EventsNotDecoded);
-    // console.log('SwapInEtherscanNotInScript: ', SwapInEtherscanNotInScript);
-    // console.log('SwapInScriptNotInEtherscan: ', SwapInScriptNotInEtherscan);
-    // console.log('AmountsNotEqual: ', AmountsNotEqual + TokenAddressNotFound);
-    // console.log('NotEqualCount: ', NotEqualCount);
-    // console.log('MultipleHighlightedEventTexts: ', MultipleHighlightedEventTexts);
-
-    console.log('End Perform');
   }
 
   setAllCounts(summary, actionName) {
@@ -129,6 +115,9 @@ class ConstructSummary {
       // .where('highlighted_event_texts is not null')
       .where('transaction_hash is not null')
       // .where(['transaction_hash = "0x315fb023079d13ada260f39129b02fdec567923431ccb2658d6e1c78f17be85d"'])
+      // .where('total_events = 0 ')
+      // .where('total_events = 1 && JSON_EXTRACT(data, "$.value") != "0"')
+      // .where('JSON_EXTRACT(data, "$.raw_input") = "0x"')
       .limit(limit)
       .offset(offset)
       .fire();
@@ -144,38 +133,6 @@ class ConstructSummary {
     return formattedTransactionDetails;
   }
 
-  getMethodName(event) {
-    const methodCall = event && event.decoded && event.decoded.method_call;
-    // check if method call is swap event by splitting the method call
-    const method = methodCall && methodCall.split('(')[0];
-  
-    return method || event.temp_function_name;
-  }
-
-  convertToDecimal(value, decimal) {
-    // if (!decimal) {
-    //   decimal = 18;
-    // }
-    return new BigNumber(value).dividedBy(new BigNumber(10).pow(decimal)).toString();
-  }
-
-  convertToNumberWithCommas(value) {
-    let parts = value.split('.');
-    parts[0] = Number(parts[0]).toLocaleString('en-US');
-    return parts.join('.');
-  }
-
-  checkIfHighlightedEventTextIsTransfer(highlightedEventText) {
-    const oThis = this;
-
-    if (!highlightedEventText) {
-      return false;
-    }
-
-    const highlightedEventTextArr = highlightedEventText.split(' ');
-
-    return highlightedEventTextArr[0].toUpperCase() == 'TRANSFER';
-  }
 }
 
 const constructSummary = new ConstructSummary();
