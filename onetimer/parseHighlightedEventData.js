@@ -38,11 +38,20 @@ class ParseHighlightedEvent {
         offset = offset + limit;
       }
 
+      let promises = [];
       for (let txDetail of transactionDetails) {
         console.log('highlightedEvents: ', txDetail.id);
         let updateParams = await this.parseData(txDetail);
         let updateTransactionDetailObj = new TransactionDetailModel();
-        await updateTransactionDetailObj.updateById(txDetail.id, updateParams);
+        let prm =  updateTransactionDetailObj.updateById(txDetail.id, updateParams);
+        promises.push(prm);
+        if (promises.length == 10) {
+          await Promise.all(promises);
+          promises = [];
+        }
+      }
+      if (promises.length > 0) {
+        await Promise.all(promises);
       }
     }
     console.log('End Perform');

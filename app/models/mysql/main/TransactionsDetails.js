@@ -245,7 +245,7 @@ class TransactionsDetailsModel extends ModelBase {
     const oThis = this;
     const response = [];
     const dbRows = await oThis
-      .select("*")
+      .select("id, highlighted_event_html")
       .where([
         "highlighted_event_status = ?",
         transactionDetailsConstants.successHighlightedEventStatus,

@@ -29,7 +29,7 @@ class ReportData {
 
       let fetchTransactionDetailObj = new TransactionDetailModel();
       let transactionDetails = await fetchTransactionDetailObj
-        .select('*')
+        .select('id, logs_data')
         .where(['status = "SUCCESS"'])
         .limit(limit)
         .offset(offset)
@@ -39,6 +39,7 @@ class ReportData {
         break;
       }
 
+      let promises = [];
       for (let txDetail of transactionDetails) {
         const formattedTxDetail = new TransactionDetailModel().formatDbData(txDetail);
         let decodeEventCount = 0;
@@ -48,13 +49,25 @@ class ReportData {
           if (eventLog && eventLog.decoded && eventLog.decoded.method_id){
             decodeEventCount++;
           }
-          console.log('totalEventCount, decodeEventCount', totalEventCount, decodeEventCount);
         }
+        console.log('totalEventCount, decodeEventCount', totalEventCount, decodeEventCount);
 
+        if (totalEventCount == 0) {
+          continue;
+        }
         let updateTransactionDetailObj = new TransactionDetailModel();
-        await updateTransactionDetailObj.updateById(txDetail.id, {
+        let prm =  updateTransactionDetailObj.updateById(txDetail.id, {
           total_events: totalEventCount, total_decoded_events: decodeEventCount
         });
+        promises.push(prm);
+
+        if (promises.length == 10) {
+          await Promise.all(promises);
+          promises = [];
+        }
+      }
+      if (promises.length > 0) {
+        await Promise.all(promises);
       }
       offset = offset + limit;
     }

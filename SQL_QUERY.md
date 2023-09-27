@@ -89,3 +89,24 @@ ORDER BY
 ```bash
 SELECT JSON_LENGTH(highlighted_event_texts) from transactions_details;
 ```
+
+### Report: SQL QUERY TO UPDATE total_decoded_events
+```bash
+UPDATE transactions_details
+set total_decoded_events = (
+    SELECT COUNT(*)
+    FROM JSON_TABLE(
+      JSON_EXTRACT(logs_data, '$.items'),
+      '$[*]' COLUMNS(
+        decoded_field JSON PATH '$.decoded'
+      )
+    ) AS jt
+    WHERE jt.decoded_field IS NOT NULL
+  )
+```
+
+### Report: SQL QUERY TO UPDATE total_events
+```bash
+UPDATE transactions_details
+set total_events =  JSON_LENGTH(JSON_EXTRACT(logs_data, '$.items'))
+```bash

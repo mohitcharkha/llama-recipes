@@ -44,7 +44,7 @@ class PopulateHighlightedEvent {
         console.log("highlightedEvents: ", tx.id);
         let updateTransactionDetailObj = new TransactionDetailModel();
         await updateTransactionDetailObj.updateById(tx.id, highlightedEvents);
-        await basicHelper.sleep(2000);
+        await basicHelper.sleep(1000);
       }
     }
     console.log("End Perform");
