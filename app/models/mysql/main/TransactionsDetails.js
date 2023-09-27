@@ -54,7 +54,7 @@ class TransactionsDetailsModel extends ModelBase {
       isHighlightedEventDecoded: dbRow.is_highlighted_event_decoded,
       totalEvents: dbRow.total_events,
       totalDecodedEvents: dbRow.total_decoded_events,
-      tempLogsData: JSON.parse(dbRow.temp_logs_data),
+      tempLogsData: dbRow.temp_logs_data ? JSON.parse(dbRow.temp_logs_data) : null,
     };
 
     if (dbRow.txn_type) {
@@ -250,6 +250,7 @@ class TransactionsDetailsModel extends ModelBase {
         "highlighted_event_status = ?",
         transactionDetailsConstants.successHighlightedEventStatus,
       ])
+      .where("id >= 33073")
       .offset(offset)
       .limit(limit)
       .fire();
