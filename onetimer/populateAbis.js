@@ -3,6 +3,7 @@ const axios = require('axios');
 const rootPrefix = '..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   TransactionLogsModel = require(rootPrefix + '/app/models/mysql/main/TransactionLog'),
+  TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails'),
   ContractAbisModel = require(rootPrefix + '/app/models/mysql/main/ContractAbis');
   
 const apiKey = coreConstants.etherscanApiKey;
@@ -13,8 +14,8 @@ class PopulateAbis {
       page = 1;
 
     while (true) {
-      let transactionLogsObj = new TransactionLogsModel();
-      const transactions = await transactionLogsObj.fetchTransactionLogsByPageFromDb(page);
+      let transactionLogsObj = new TransactionDetailModel();
+      const transactions = await transactionLogsObj.fetchTransactionDetailsByPageFromDb(page);
 
       if (!transactions || Object.keys(transactions).length === 0) {
         break;
@@ -23,7 +24,7 @@ class PopulateAbis {
       for (let index = 0; index < transactions.length; index++) {
         let transaction = transactions[index];
 
-        const items = transaction.data && transaction.data.items;
+        const items = transaction.logsData && transaction.logsData.items;
 
         if (!items || items.length === 0) {
           continue;

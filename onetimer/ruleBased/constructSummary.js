@@ -13,7 +13,8 @@ const BigNumber = require('bignumber.js');
 const rootPrefix = '../..',
   TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails');
   FormatSwapEvents = require(rootPrefix + '/lib/ruleEngine/Swap');
-  FormatTransferEvents = require(rootPrefix + '/lib/ruleEngine/Transfer');
+  FormatTransferEvents = require(rootPrefix + '/lib/ruleEngine/Transfer'),
+  FormatApprovalEvents = require(rootPrefix + '/lib/ruleEngine/Approve');
 
 let MatchCount = 0;
 let SwapInEtherscanNotInScript = 0;
@@ -65,11 +66,16 @@ class FormatEvents {
         
         console.log('txDetail.transactionHash: ', txDetail.transactionHash);
 
-        // const transferSummarry = FormatTransferEvents.perform(txDetail);
-        // oThis.setAllCounts(transferSummarry);
+        const transferSummarry = FormatTransferEvents.perform(txDetail);
+        oThis.setAllCounts(transferSummarry);
         
-        const swapSummarry = oThis.formatSwapEventsObj.perform(txDetail);
-        oThis.setAllCounts(swapSummarry);
+        // const approveSummarry = FormatApprovalEvents.perform(txDetail);
+
+        // console.log('approveSummarry: ', approveSummarry);
+        // oThis.setAllCounts(approveSummarry);
+
+        // const swapSummarry = oThis.formatSwapEventsObj.perform(txDetail);
+        // oThis.setAllCounts(swapSummarry);
 
       }
       offset = offset + limit;
@@ -126,7 +132,6 @@ class FormatEvents {
         break;
       case 'EventsNotDecoded':
         EventsNotDecoded++;
-        NotEqualCount++;
         break;
       case 'NotEqualCount':
         NotEqualCount++;
@@ -143,7 +148,7 @@ class FormatEvents {
     let fetchTransactionDetailObj = new TransactionDetailModel();
     let transactionDetails = await fetchTransactionDetailObj
       .select('*')
-      .where('highlighted_event_texts is not null')
+      // .where('highlighted_event_texts is not null')
       .where('transaction_hash is not null')
       // .where(['transaction_hash = "0x315fb023079d13ada260f39129b02fdec567923431ccb2658d6e1c78f17be85d"'])
       .limit(limit)

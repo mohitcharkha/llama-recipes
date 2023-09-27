@@ -432,6 +432,26 @@ class TransactionsDetailsModel extends ModelBase {
       .where({ transaction_hash: txHash })
       .fire();
   }
+
+  async fetchTransactionDetailsByPageFromDb(pageNo) {
+    const oThis = this;
+    let offset = (pageNo - 1) * 100;
+
+    const response = []
+
+    let dbRows = await oThis
+      .select('*')
+      .offset(offset)
+      .limit(100)
+      .fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }
 }
 
 module.exports = TransactionsDetailsModel;
