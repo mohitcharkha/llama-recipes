@@ -75,8 +75,11 @@ class ConstructSummary {
         
         console.log('txDetail.transactionHash: ', txDetail.transactionHash);
 
-        const transferSummarry = FormatTransferEvents.perform(txDetail);
-        oThis.setAllCounts(transferSummarry, 'Transfer');
+        const transferSummarry = new FormatTransferEvents().perform(txDetail);
+
+        if (transferSummarry.type) {
+          oThis.setAllCounts(transferSummarry, 'Transfer');
+        }
         
         // const approveSummarry = FormatApprovalEvents.perform(txDetail);
 
