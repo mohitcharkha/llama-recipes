@@ -64,6 +64,7 @@ class TransactionsDetailsModel extends ModelBase {
     return formattedData;
   }
 
+
   /**
    * Insert records.
    *
@@ -153,7 +154,7 @@ class TransactionsDetailsModel extends ModelBase {
     const dbRows = await oThis
       .select(["id", "transaction_hash"])
       .where(["status = ?", transactionDetailsConstants.pendingStatus])
-      // .where("id >= 100000")
+      .where("id != 48142")
       .limit(limit)
       .fire();
 
@@ -241,7 +242,7 @@ class TransactionsDetailsModel extends ModelBase {
    * @returns {Promise<Map>}
    *
    */
-  async getRowsToParseHighlightedEvent(limit, offset) {
+  async getRowsToParseHighlightedEvent(limit, maxId) {
     const oThis = this;
     const response = [];
     const dbRows = await oThis
@@ -250,8 +251,7 @@ class TransactionsDetailsModel extends ModelBase {
         "highlighted_event_status = ?",
         transactionDetailsConstants.successHighlightedEventStatus,
       ])
-      .where("id >= 33073")
-      .offset(offset)
+      .where(["id > ?", maxId])
       .limit(limit)
       .fire();
 

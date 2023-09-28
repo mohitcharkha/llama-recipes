@@ -22,30 +22,29 @@ class ParseHighlightedEvent {
     // Fetch all valid transactions
     console.log("Fetching all valid transactions....");
 
-    let limit = 100;
-    let offset = 0;
+    let limit = 300;
+    let maxId = 0
     while (true) {
-      console.log("Current offset: ", offset);
+      console.log("Current maxId: ", maxId);
 
       let fetchTransactionDetailObj = new TransactionDetailModel();
       let transactionDetails = await fetchTransactionDetailObj.getRowsToParseHighlightedEvent(
-        limit, offset
+        limit, maxId
       );
 
       if (transactionDetails.length == 0) {
         break;
-      } else {
-        offset = offset + limit;
       }
 
       let promises = [];
       for (let txDetail of transactionDetails) {
+        maxId = txDetail.id;
         console.log('highlightedEvents: ', txDetail.id);
         let updateParams = await this.parseData(txDetail);
         let updateTransactionDetailObj = new TransactionDetailModel();
         let prm =  updateTransactionDetailObj.updateById(txDetail.id, updateParams);
         promises.push(prm);
-        if (promises.length == 10) {
+        if (promises.length == 15) {
           await Promise.all(promises);
           promises = [];
         }
