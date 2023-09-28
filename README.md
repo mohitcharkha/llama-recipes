@@ -42,3 +42,16 @@ node db/migrate.js
  node onetimer/populateTransactionsDataFromBlockscout.js
  node onetimer/populateHighlightedEvent.js
  ```
+
+## Connect to Hosted DB instance
+SSH TUNNELING
+```
+ssh -v -i <path to pem file> -N -L 3307:<db host>:3306 -p 22 <ssh username>@<ssh machine ip> -o ConnectTimeout=60
+```
+
+UPDATE ENV VARS:
+```
+export A_MAIN_DB_MYSQL_USER=<DB_USER>
+export A_MAIN_DB_MYSQL_PASSWORD=<DB_PASSWORD>
+export A_MAIN_DB_MYSQL_PORT=3307
+```

@@ -43,17 +43,18 @@ class TransactionsDetailsModel extends ModelBase {
       status: dbRow.status,
       transactionHash: dbRow.transaction_hash,
       blockNumber: dbRow.block_number,
-      data: JSON.parse(dbRow.data),
-      logsData: JSON.parse(dbRow.logs_data),
+      data: dbRow.data ? JSON.parse(dbRow.data) : null,
+      logsData: dbRow.logs_data ? JSON.parse(dbRow.logs_data) : null,
       highlightedEventStatus: dbRow.highlighted_event_status,
       highlightedEventHtml: dbRow.highlighted_event_html,
-      highlightedEventTexts: JSON.parse(dbRow.highlighted_event_texts),
+      highlightedEventTexts: dbRow.highlighted_event_texts ? JSON.parse(dbRow.highlighted_event_texts) : null,
       highlightedEventContractAddress: dbRow.highlighted_event_contract_address,
       highlightedEventMethodName: dbRow.highlighted_event_method_name,
-      highlightedEventExtraData: JSON.parse(dbRow.highlighted_event_extra_data),
+      highlightedEventExtraData: dbRow.highlighted_event_extra_data ? JSON.parse(dbRow.highlighted_event_extra_data) : null,
       isHighlightedEventDecoded: dbRow.is_highlighted_event_decoded,
       totalEvents: dbRow.total_events,
       totalDecodedEvents: dbRow.total_decoded_events,
+      tempLogsData: dbRow.temp_logs_data ? JSON.parse(dbRow.temp_logs_data) : null,
     };
 
     if (dbRow.txn_type) {
@@ -62,6 +63,7 @@ class TransactionsDetailsModel extends ModelBase {
 
     return formattedData;
   }
+
 
   /**
    * Insert records.
@@ -140,6 +142,31 @@ class TransactionsDetailsModel extends ModelBase {
   }
 
   /**
+   * This method gets the pending transactions.
+   *
+   * @param {int} limit
+   *
+   * @returns {Promise<Map>}
+   */
+  async getRowsByPendingStatus(limit) {
+    const oThis = this;
+    const response = [];
+    const dbRows = await oThis
+      .select(["id", "transaction_hash"])
+      .where(["status = ?", transactionDetailsConstants.pendingStatus])
+      .where("id != 48142")
+      .limit(limit)
+      .fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }
+
+  /**
    * This method gets the transactions by transaction_hash
    *
    * @param {string} transactionHash
@@ -163,23 +190,24 @@ class TransactionsDetailsModel extends ModelBase {
   }
 
   /**
-   * This method gets the transactions in a blockNumber.
+   * This method gets the pending highlighted event transactions.
    *
-   * @param {integer} blockNumber
+   * @param {int} limit
    *
    * @returns {Promise<Map>}
    *
    */
-  async getRowsByBlockNumberForHighlightedEvent(blockNumber) {
+  async getRowsByPendingHighlightedEvent(limit) {
     const oThis = this;
     const response = [];
     const dbRows = await oThis
-      .select("*")
-      .where({ block_number: blockNumber })
+      .select(["id", "transaction_hash"])
       .where([
         "highlighted_event_status = ?",
         transactionDetailsConstants.pendingHighlightedEventStatus,
       ])
+      // .where("id >= 100000")
+      .limit(limit)
       .fire();
 
     for (let index = 0; index < dbRows.length; index++) {
@@ -214,16 +242,16 @@ class TransactionsDetailsModel extends ModelBase {
    * @returns {Promise<Map>}
    *
    */
-  async getRowsToParseHighlightedEvent(limit, offset) {
+  async getRowsToParseHighlightedEvent(limit, maxId) {
     const oThis = this;
     const response = [];
     const dbRows = await oThis
-      .select("*")
+      .select("id, highlighted_event_html")
       .where([
         "highlighted_event_status = ?",
         transactionDetailsConstants.successHighlightedEventStatus,
       ])
-      .offset(offset)
+      .where(["id > ?", maxId])
       .limit(limit)
       .fire();
 
@@ -388,6 +416,35 @@ class TransactionsDetailsModel extends ModelBase {
     }
 
     const dbRows = await query.fire();
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const formatDbRow = oThis.formatDbData(dbRows[index]);
+      response.push(formatDbRow);
+    }
+
+    return response;
+  }
+
+  async updateByTxHash(txHash, updateParams) {
+    const oThis = this;
+
+    await oThis
+      .update(updateParams)
+      .where({ transaction_hash: txHash })
+      .fire();
+  }
+
+  async fetchTransactionDetailsByPageFromDb(pageNo) {
+    const oThis = this;
+    let offset = (pageNo - 1) * 100;
+
+    const response = []
+
+    let dbRows = await oThis
+      .select('*')
+      .offset(offset)
+      .limit(100)
+      .fire();
 
     for (let index = 0; index < dbRows.length; index++) {
       const formatDbRow = oThis.formatDbData(dbRows[index]);
