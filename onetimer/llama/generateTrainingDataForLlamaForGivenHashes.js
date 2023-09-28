@@ -10,7 +10,7 @@ const { writeFileSync } = require("fs");
 const { join } = require("path");
 const trainingHashes = require("./training_hashes_for_llama.json");
 
-const rootPrefix = "../",
+const rootPrefix = "../..",
   TransactionDetailModel = require(rootPrefix +
     "/app/models/mysql/main/TransactionsDetails");
 
@@ -70,13 +70,9 @@ class GenerateTrainingData {
 
         try {
           const data = JSON.stringify(prompt) + "\n";
-          writeFileSync(
-            join(__dirname, "training_dataset_without_decoded.jsonl"),
-            data,
-            {
-              flag: "a+",
-            }
-          );
+          writeFileSync(join(__dirname, "training_dataset_llama.jsonl"), data, {
+            flag: "a+",
+          });
         } catch (error) {
           console.error(error.message);
         }
@@ -97,7 +93,7 @@ class GenerateTrainingData {
     try {
       const data = JSON.stringify(transactionHashes) + "\n";
       writeFileSync(
-        join(__dirname, "transaction_hashes_for_without_decoded.json"),
+        join(__dirname, "transaction_hashes_for_llama.json"),
         data,
         {
           flag: "a+",

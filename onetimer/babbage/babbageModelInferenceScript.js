@@ -14,6 +14,8 @@ class ModelInference {
   constructor() {
     const oThis = this;
 
+    oThis.systemPrompt = `You are an expert in Ethereum blockchain and its various protocols and smart contracts with specialization in understanding Ethereum transactions, event logs, and token transfers. Your primary task is to meticulously analyze Ethereum blockchain transactions and generate concise one-line summaries. Your analysis should include inspecting token transfers to craft desired summaries as the event logs might not always be decoded.Pay close attention to intelligently group related events into one primary action. If a transaction contains multiple groupings of the same events or different unrelated events that hold critical importance, create one-line summaries for each distinct grouping of events to ensure all relevant details are captured effectively. Additionally, it is crucial to ensure accurate representation of token and total values based on their associated decimal places. Your focus should be on delivering clear and concise summaries that extract essential information from the transactions`;
+    oThis.userPrompt = null;
     oThis.trainedEventTypes = [
       "Swap",
       "Burn",
@@ -39,9 +41,9 @@ class ModelInference {
       "Disable",
     ];
 
-    oThis.noOfInferences = 1;
+    oThis.noOfInferences = 50;
     oThis.modelName = "ft:babbage-002:true-sparrow:rio:83hMbTpW";
-    oThis.txnTypeLimit = oThis.noOfInferences / 5;
+    oThis.txnTypeLimit = oThis.noOfInferences / 17;
   }
 
   async perform() {
@@ -76,16 +78,18 @@ class ModelInference {
       let completion = null;
 
       try {
-        completion = await openai.chat.completions.create({
-          messages: prompt.messages,
+        completion = await openai.completions.create({
           model: oThis.modelName,
+          prompt: prompt,
         });
       } catch (error) {
         console.log(
           "Error in completion for hash:",
           txDetail.data.hash,
           "Error:",
-          error.code
+          error.code,
+          "\n\n Error:",
+          error
         );
         continue;
       }
@@ -95,52 +99,67 @@ class ModelInference {
       console.log("Transaction hash: ", txDetail.data.hash);
 
       // completion = {
+      //   id: "cmpl-83kzklJGPQiym97xjKovHGEP7bgxL",
+      //   object: "text_completion",
+      //   created: 1695906324,
+      //   model: "ft:babbage-002:true-sparrow:rio:83hMbTpW",
       //   choices: [
       //     {
+      //       text: '["Swap 0.30715621648634070 Ether For 5,',
       //       index: 0,
-      //       message: {
-      //         role: "assistant",
-      //         content:
-      //           '["Swap 0.05 Ether For 1,012,518,851,348.900061158313403 0x5b42055f9a44155651ab0557810758ed4e2b7539 On Uniswap V2"]',
-      //       },
-      //       finish_reason: "stop",
+      //       logprobs: null,
+      //       finish_reason: "length",
       //     },
       //   ],
+      //   usage: {
+      //     prompt_tokens: 3549,
+      //     completion_tokens: 16,
+      //     total_tokens: 3565,
+      //   },
       // };
 
-      const completionText = completion.choices[0].message.content;
+      const completionText = completion.choices[0].text;
 
       let parsedCompletionText = null;
 
+      let isExactMatch = false,
+        isMatch = false,
+        isClassificationMatching = false;
+
       try {
         parsedCompletionText = JSON.parse(completionText);
+        isExactMatch = oThis.isExactMatch(
+          parsedCompletionText,
+          transactionDetails.output
+        );
+
+        isMatch = oThis.isMatch(
+          parsedCompletionText,
+          transactionDetails.output
+        );
+        isClassificationMatching = oThis.isClassificationMatching(
+          parsedCompletionText,
+          transactionDetails.output
+        );
       } catch (error) {
-        console.log("Error in parsing completion text: ", error);
-        continue;
+        console.log("Error in parsing completion text");
       }
 
-      const isExactMatch = oThis.isExactMatch(
-        parsedCompletionText,
-        transactionDetails.output
-      );
-
-      const isMatch = oThis.isMatch(
-        parsedCompletionText,
-        transactionDetails.output
-      );
-
-      const isClassificationMatching = oThis.isClassificationMatching(
-        parsedCompletionText,
-        transactionDetails.output
-      );
+      try {
+        isClassificationMatching =
+          oThis.extractFirstWordFromModelOutput(completionText) ===
+          txDetail.txnType;
+      } catch (error) {
+        console.log("Error fetching first word text: ", error);
+      }
 
       const data = {
         modelName: oThis.modelName,
-        systemPrompt: prompt.messages[0].content,
-        userPrompt: prompt.messages[1].content,
+        systemPrompt: oThis.systemPrompt,
+        userPrompt: oThis.userPrompt,
         transactionHash: transactionDetails.transactions.hash,
         transactionType: txDetail.txnType,
-        trainedModelOutput: parsedCompletionText,
+        trainedModelOutput: completionText,
         expectedOutput: transactionDetails.output,
         isExactSame: isExactMatch,
         isSame: isMatch,
@@ -200,19 +219,20 @@ class ModelInference {
   }
 
   generatePrompt(trainingDataItem) {
+    const oThis = this;
     const transactionDetails = JSON.stringify({
       event_logs: trainingDataItem.event_logs,
       token_transfers: trainingDataItem.token_transfers,
       transactions: trainingDataItem.transactions,
     });
 
-    const context = `You are an expert in Ethereum blockchain and its various protocols and smart contracts with specialization in understanding Ethereum transactions, event logs, and token transfers. Your primary task is to meticulously analyze Ethereum blockchain transactions and generate concise one-line summaries. Your analysis should include inspecting token transfers to craft desired summaries as the event logs might not always be decoded.Pay close attention to intelligently group related events into one primary action. If a transaction contains multiple groupings of the same events or different unrelated events that hold critical importance, create one-line summaries for each distinct grouping of events to ensure all relevant details are captured effectively. Additionally, it is crucial to ensure accurate representation of token and total values based on their associated decimal places. Your focus should be on delivering clear and concise summaries that extract essential information from the transactions`;
+    oThis.userPrompt = transactionDetails;
+
+    const context = oThis.systemPrompt;
 
     const promptString = `Transaction details: ${transactionDetails}\ncontext: ${context}`;
 
-    const prompt = {
-      prompt: `${promptString}\n\n###\n\n`,
-    };
+    const prompt = `${promptString}\n\n###\n\n`;
     return prompt;
   }
 
@@ -246,6 +266,19 @@ class ModelInference {
     }
 
     return oThis.isExactMatch(actualFirstWords, expectedFirstWords);
+  }
+
+  extractFirstWordFromModelOutput(modelOutput) {
+    // example: modelOutput='["Swap 0.30715621648634070 Ether For 5,'
+    // answer= Swap
+
+    const firstWord = modelOutput.split(" ")[0];
+
+    // clean the first word
+    const cleanedFirstWord = firstWord.replace(/[^a-zA-Z ]/g, "");
+
+    console.log(cleanedFirstWord);
+    return cleanedFirstWord;
   }
 
   getFirstWord(str) {
@@ -285,7 +318,7 @@ class ModelInference {
         item.userPrompt,
         item.transactionHash,
         item.transactionType,
-        item.trainedModelOutput.join(";"),
+        item.trainedModelOutput,
         item.expectedOutput.join(";"),
         item.isExactSame ? "Yes" : "No",
         item.isSame ? "Yes" : "No",
@@ -306,7 +339,7 @@ class ModelInference {
       .toISOString()
       .replace(/:/g, "-")
       .replace(/\..+/, "");
-    const directory = "./onetimer/output";
+    const directory = "./onetimer/babbage/output";
 
     if (!fs.existsSync(directory)) {
       fs.mkdirSync(directory, { recursive: true });
