@@ -103,7 +103,7 @@ class FormatSales {
 
   returnResult() {
     const oThis = this;
-    if (oThis.isEthercanTextTransfer) {
+    if (oThis.isEthercanTextSale) {
       return {
         type: "script_classification_failed_for_given_action",
       };
