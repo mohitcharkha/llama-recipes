@@ -74,21 +74,24 @@ class ConstructSummary {
         AllTranactionsCount++;
         
         console.log('txDetail.transactionHash: ', txDetail.transactionHash);
+        
         const transferSummarry = new FormatTransferEvents().perform(txDetail);
-
         if (transferSummarry.type) {
           oThis.setAllCounts(transferSummarry, transferSummarry.kind);
-        } else {
+          continue;
+        } 
 
-          const approveSummarry = new FormatApprovalEvents().perform(txDetail);
-          if (approveSummarry.type) {
-            oThis.setAllCounts(approveSummarry, approveSummarry.kind);
-          }
-
-          // const swapSummarry = oThis.formatSwapEventsObj.perform(txDetail);
-          // oThis.setAllCounts(swapSummarry);
+        const approveSummarry = new FormatApprovalEvents().perform(txDetail);
+        if (approveSummarry.type) {
+          oThis.setAllCounts(approveSummarry, approveSummarry.kind);
+          continue;
         }
 
+        const swapSummarry = new FormatSwapEvents().perform(txDetail);
+        if (swapSummarry.type) {
+          oThis.setAllCounts(swapSummarry, swapSummarry.kind);
+          continue;
+        }
       }
       offset = offset + limit;
       
@@ -98,6 +101,7 @@ class ConstructSummary {
      
     }
     console.log('::RESPONSE:: ', oThis.response);
+    console.log('AllTranactionsCount: ', AllTranactionsCount);
   }
 
   setAllCounts(summary, actionName) {
