@@ -47,6 +47,51 @@ class FormatSales {
 
     etherValue = oThis.calculateEtherValue(data);
 
+    if(etherValue == 0) {
+      nftsCount = 0; 
+
+      // Recalculate NFTS count as well from ERC721 transfer events
+
+
+      let address;
+
+      if( data && data.token_transfers) {
+        for (const tokenTransfer of data.token_transfers) {
+          const token = tokenTransfer.token;
+          if(token.type == "ERC-721") {
+            if(!address) {
+            address = tokenTransfer.to.hash;
+            }
+            nftsCount++;
+          }
+          
+        } 
+
+      console.log("address: ", address);
+
+      let value = 0;
+      for(const tokenTransfer of data.token_transfers) {
+        const token = tokenTransfer.token,
+        from = tokenTransfer.from,
+        total = tokenTransfer.total;
+
+
+        if(token.type == "ERC-20" &&  from.hash == address) {
+          console.log("total.value: ", total.value);
+          value = Number(value) + Number(total.value);
+        }
+      }
+
+      console.log("value inside another logic: ", value);
+
+
+      etherValue = oThis.convertToDecimal(value, 18);
+
+      console.log("etherValue inside another logic: ", etherValue);
+    }
+
+    }
+
     formattedText = oThis.constructSaleSummary(nftsCount, etherValue);
 
     return oThis.checkIfEqual(
