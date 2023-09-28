@@ -1,0 +1,210 @@
+const BigNumber = require("bignumber.js");
+
+class FormatSales {
+  /**
+   * Constructor for Sale transaction.
+   *
+   * @param {object} params
+   *
+   * @constructor
+   */
+  constructor(params) {
+    const oThis = this;
+
+    oThis.isEthercanTextSale = false;
+  }
+
+  /**
+   * Perform
+   * @param {object} txDetail
+   *
+   * @return {Promise<*>}
+   */
+  perform(txDetail) {
+    const oThis = this;
+
+    const logsData = txDetail.logsData;
+    const data = txDetail.data;
+
+    let formattedText = "";
+    const highlightedEventTexts =
+      txDetail.highlightedEventTexts &&
+      txDetail.highlightedEventTexts.length > 0
+        ? txDetail.highlightedEventTexts[0]
+        : null;
+
+    if (oThis.checkIfHighlightedEventTextIsSale(highlightedEventTexts)) {
+      oThis.isEthercanTextSale = true;
+    }
+    let nftsCount = 0;
+    let etherValue = 0;
+
+    nftsCount = oThis.checkIfTransactionIsOfTypeSale(logsData);
+
+    if (nftsCount == 0) {
+      return oThis.returnResult();
+    }
+
+    etherValue = oThis.calculateEtherValue(data);
+
+    formattedText = oThis.constructSaleSummary(nftsCount, etherValue);
+
+    return oThis.checkIfEqual(
+      txDetail.highlightedEventTexts,
+      formattedText,
+      txDetail.transactionHash
+    );
+  }
+
+  returnResult() {
+    const oThis = this;
+    if (oThis.isEthercanTextTransfer) {
+      return {
+        type: "script_classification_failed_for_given_action",
+      };
+    }
+
+    return {
+      type: null,
+    };
+  }
+
+  checkIfEqual(highlightedEventTexts, formattedText, transactionHash) {
+    const oThis = this;
+
+    if (highlightedEventTexts == null || highlightedEventTexts.length == 0) {
+      console.log("etherscan_does_not_have_any_text:  ", transactionHash);
+      console.log("formattedText: ", formattedText);
+      console.log("highlightedEventTexts: ", highlightedEventTexts);
+      return {
+        type: "etherscan_does_not_have_any_text",
+      };
+    }
+
+    const highlightedEventText = oThis.getFormattedHighlightEventText(
+      highlightedEventTexts[0]
+    );
+
+    if (highlightedEventText.toUpperCase() == formattedText.toUpperCase()) {
+      console.log("exact_match:  ", transactionHash);
+      console.log("formattedText: ", formattedText);
+      console.log("highlightedEventTexts: ", highlightedEventTexts);
+
+      return {
+        type: "exact_match",
+      };
+    }
+
+    if (oThis.isEthercanTextSale) {
+      console.log("same_action_different_language:  ", transactionHash);
+      console.log("formattedText: ", formattedText);
+      console.log("highlightedEventTexts: ", highlightedEventTexts);
+
+      return { type: "same_action_different_language" };
+    } else {
+      console.log(
+        "etherscan_does_not_classify_as_given_action:  ",
+        transactionHash
+      );
+      console.log("formattedText: ", formattedText);
+      console.log("highlightedEventTexts: ", highlightedEventTexts);
+      return { type: "etherscan_does_not_classify_as_given_action" };
+    }
+  }
+
+  constructSaleSummary(nftsCount, etherValue) {
+    let language = "";
+    if (nftsCount == 1) {
+      language = `Sale: ${nftsCount} NFT For ${etherValue} Ether`;
+    } else {
+      language = `Sale: ${nftsCount} NFTs For ${etherValue} Ether`;
+    }
+
+    return language;
+  }
+
+  calculateEtherValue(data) {
+    const oThis = this;
+
+    let formattedAmount = oThis.convertToDecimal(data.value, 18);
+    return formattedAmount;
+  }
+
+  checkIfTransactionIsOfTypeSale(logsData) {
+    const oThis = this;
+    let nftsCount = 0;
+    for (let i = 0; i < logsData.items.length; i++) {
+      const eventLog = logsData.items[i];
+      const methodName = oThis.getMethodName(eventLog);
+      if (methodName == "OrderFulfilled") {
+        nftsCount++;
+      }
+    }
+
+    return nftsCount;
+  }
+
+  convertToDecimal(value, decimal) {
+    value = new BigNumber(value)
+      .dividedBy(new BigNumber(10).pow(decimal))
+      .toString();
+
+    return value;
+  }
+
+  convertToNumberWithCommas(value) {
+    let parts = value.split(".");
+    parts[0] = Number(parts[0]).toLocaleString("en-US");
+    return parts.join(".");
+  }
+
+  getMethodName(event) {
+    const methodCall = event && event.decoded && event.decoded.method_call;
+    // check if method call is OrderFulfilled event by splitting the method call
+    const method = methodCall && methodCall.split("(")[0];
+
+    return method;
+  }
+
+  getAllCounts(matched, type) {
+    const oThis = this;
+
+    return {
+      matched: matched,
+      type: type,
+    };
+  }
+
+  checkIfHighlightedEventTextIsSale(highlightedEventText) {
+    const oThis = this;
+
+    if (!highlightedEventText) {
+      return false;
+    }
+
+    const highlightedEventTextArr = highlightedEventText.split(":");
+
+    return highlightedEventTextArr[0].toUpperCase() == "SALE";
+  }
+
+  getFormattedHighlightEventText(highlightedEventText) {
+    const oThis = this;
+
+    if (!highlightedEventText) {
+      return null;
+    }
+
+    highlightedEventText = highlightedEventText.replace(
+      "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+      "Ether"
+    );
+
+    if (highlightedEventText.includes(" On")) {
+      return highlightedEventText.split(" On")[0].toUpperCase();
+    } else {
+      return highlightedEventText.split(" via")[0].toUpperCase();
+    }
+  }
+}
+
+module.exports = FormatSales;

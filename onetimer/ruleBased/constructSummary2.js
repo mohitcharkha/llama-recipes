@@ -8,13 +8,15 @@
  *
  */
 
-const BigNumber = require('bignumber.js');
+const BigNumber = require("bignumber.js");
 
-const rootPrefix = '../..',
-  TransactionDetailModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails');
-  FormatSwapEvents = require(rootPrefix + '/lib/ruleEngine/Swap');
-  FormatTransferEvents = require(rootPrefix + '/lib/ruleEngine/Transfer'),
-  FormatApprovalEvents = require(rootPrefix + '/lib/ruleEngine/Approve');
+const rootPrefix = "../..",
+  TransactionDetailModel = require(rootPrefix +
+    "/app/models/mysql/main/TransactionsDetails"),
+  FormatSwapEvents = require(rootPrefix + "/lib/ruleEngine/Swap"),
+  FormatSaleEvents = require(rootPrefix + "/lib/ruleEngine/Sale"),
+  FormatTransferEvents = require(rootPrefix + "/lib/ruleEngine/Transfer"),
+  FormatApprovalEvents = require(rootPrefix + "/lib/ruleEngine/Approve");
 
 let MatchCount = 0;
 let SwapInEtherscanNotInScript = 0;
@@ -35,15 +37,15 @@ class ConstructSummary {
   constructor() {
     const oThis = this;
     oThis.response = {};
-  // let result = {
-  //     Transfer: {
-  //     exact_match: 1000,
-  //     same_action_different_language: 10,
-  //     script_classification_failed_for_given_action: 10,
-  //     etherscan_does_not_classify_as_given_action: 10,
-  //     etherscan_does_not_have_any_text: 2,
-  //   }
-  // }
+    // let result = {
+    //     Transfer: {
+    //     exact_match: 1000,
+    //     same_action_different_language: 10,
+    //     script_classification_failed_for_given_action: 10,
+    //     etherscan_does_not_classify_as_given_action: 10,
+    //     etherscan_does_not_have_any_text: 2,
+    //   }
+    // }
 
     // oThis.formatSwapEventsObj = new FormatSwapEvents();
   }
@@ -57,29 +59,34 @@ class ConstructSummary {
     while (true) {
       console.log("Current offset: ", offset);
 
-      let transactionDetails = await oThis.fetchTransactionDetailObj(limit, offset);
+      let transactionDetails = await oThis.fetchTransactionDetailObj(
+        limit,
+        offset
+      );
 
       if (transactionDetails.length == 0) {
         break;
       }
 
       for (let txDetail of transactionDetails) {
-
         // Remove this condition after adding code for multiple highlighted event texts
-        if (txDetail.highlightedEventTexts && txDetail.highlightedEventTexts.length > 1) {
+        if (
+          txDetail.highlightedEventTexts &&
+          txDetail.highlightedEventTexts.length > 1
+        ) {
           MultipleHighlightedEventTexts++;
           continue;
         }
-        
+
         AllTranactionsCount++;
-        
-        console.log('txDetail.transactionHash: ', txDetail.transactionHash);
-        
+
+        console.log("txDetail.transactionHash: ", txDetail.transactionHash);
+
         const transferSummarry = new FormatTransferEvents().perform(txDetail);
         if (transferSummarry.type) {
           oThis.setAllCounts(transferSummarry, transferSummarry.kind);
           continue;
-        } 
+        }
 
         const approveSummarry = new FormatApprovalEvents().perform(txDetail);
         if (approveSummarry.type) {
@@ -92,32 +99,38 @@ class ConstructSummary {
           oThis.setAllCounts(swapSummarry, swapSummarry.kind);
           continue;
         }
+
+        const saleSummarry = new FormatSaleEvents().perform(txDetail);
+        if (saleSummarry.type) {
+          oThis.setAllCounts(saleSummarry, saleSummarry.kind);
+          continue;
+        }
       }
       offset = offset + limit;
-      
+
       // if (offset > 1000) {
       //   break;
       // }
-     
     }
-    console.log('::RESPONSE:: ', oThis.response);
-    console.log('AllTranactionsCount: ', AllTranactionsCount);
+    console.log("::RESPONSE:: ", oThis.response);
+    console.log("AllTranactionsCount: ", AllTranactionsCount);
   }
 
   setAllCounts(summary, actionName) {
     const oThis = this;
 
     oThis.response[actionName] = oThis.response[actionName] || {};
-    oThis.response[actionName][summary.type] = oThis.response[actionName][summary.type] || 0;
+    oThis.response[actionName][summary.type] =
+      oThis.response[actionName][summary.type] || 0;
     oThis.response[actionName][summary.type]++;
   }
 
   async fetchTransactionDetailObj(limit, offset) {
     let fetchTransactionDetailObj = new TransactionDetailModel();
     let transactionDetails = await fetchTransactionDetailObj
-      .select('*')
+      .select("*")
       // .where('highlighted_event_texts is not null')
-      .where('transaction_hash is not null')
+      .where("transaction_hash is not null")
       // .where(['transaction_hash = "0xfef5262dff0d68ce31454e9508af8814728be82c70c8e947bd15b274d3d57240"'])
       // .where('total_events = 0 ')
       // .where('total_events = 1')
@@ -132,12 +145,13 @@ class ConstructSummary {
     let formattedTransactionDetails = [];
 
     for (let txDetail of transactionDetails) {
-      formattedTransactionDetails.push(new TransactionDetailModel().formatDbData(txDetail));
+      formattedTransactionDetails.push(
+        new TransactionDetailModel().formatDbData(txDetail)
+      );
     }
 
     return formattedTransactionDetails;
   }
-
 }
 
 const constructSummary = new ConstructSummary();
@@ -145,9 +159,9 @@ const constructSummary = new ConstructSummary();
 constructSummary
   .perform()
   .then(function(rsp) {
-    process.exit(0); 
+    process.exit(0);
   })
   .catch(function(err) {
-    console.log('Error in script: ', err);
-    process.exit(1); 
+    console.log("Error in script: ", err);
+    process.exit(1);
   });
