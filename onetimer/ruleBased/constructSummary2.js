@@ -122,6 +122,7 @@ class ConstructSummary {
       // .where('total_events = 0 ')
       // .where('total_events = 1')
       // .where('JSON_EXTRACT(data, "$.raw_input") = "0x"')
+      // .where("SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(highlighted_event_texts, '$[0]')), ' ', 1) = 'Revoked'")
       .limit(limit)
       .offset(offset)
       .fire();
