@@ -42,7 +42,7 @@ class FormatSales {
     nftsCount = oThis.checkIfTransactionIsOfTypeSale(logsData);
 
     if (nftsCount == 0) {
-      return oThis.returnResult();
+      return oThis.returnResult("Sale");
     }
 
     etherValue = oThis.calculateEtherValue(data);
@@ -84,7 +84,6 @@ class FormatSales {
 
       console.log("value inside another logic: ", value);
 
-
       etherValue = oThis.convertToDecimal(value, 18);
 
       console.log("etherValue inside another logic: ", etherValue);
@@ -97,24 +96,27 @@ class FormatSales {
     return oThis.checkIfEqual(
       txDetail.highlightedEventTexts,
       formattedText,
-      txDetail.transactionHash
+      txDetail.transactionHash,
+      "Sale"
     );
   }
 
-  returnResult() {
+  returnResult(kind) {
     const oThis = this;
     if (oThis.isEthercanTextSale) {
       return {
+        kind: kind,
         type: "script_classification_failed_for_given_action",
       };
     }
 
     return {
+      kind: kind,
       type: null,
     };
   }
 
-  checkIfEqual(highlightedEventTexts, formattedText, transactionHash) {
+  checkIfEqual(highlightedEventTexts, formattedText, transactionHash, kind) {
     const oThis = this;
 
     if (highlightedEventTexts == null || highlightedEventTexts.length == 0) {
@@ -123,6 +125,7 @@ class FormatSales {
       console.log("highlightedEventTexts: ", highlightedEventTexts);
       return {
         type: "etherscan_does_not_have_any_text",
+        kind: kind
       };
     }
 
@@ -137,6 +140,7 @@ class FormatSales {
 
       return {
         type: "exact_match",
+        kind: kind
       };
     }
 
@@ -145,7 +149,8 @@ class FormatSales {
       console.log("formattedText: ", formattedText);
       console.log("highlightedEventTexts: ", highlightedEventTexts);
 
-      return { type: "same_action_different_language" };
+      return { type: "same_action_different_language",
+      kind: kind };
     } else {
       console.log(
         "etherscan_does_not_classify_as_given_action:  ",
@@ -153,7 +158,8 @@ class FormatSales {
       );
       console.log("formattedText: ", formattedText);
       console.log("highlightedEventTexts: ", highlightedEventTexts);
-      return { type: "etherscan_does_not_classify_as_given_action" };
+      return { type: "etherscan_does_not_classify_as_given_action", 
+      kind: kind};
     }
   }
 
