@@ -16,7 +16,8 @@ const rootPrefix = "../..",
   FormatSwapEvents = require(rootPrefix + "/lib/ruleEngine/Swap"),
   FormatSaleEvents = require(rootPrefix + "/lib/ruleEngine/Sale"),
   FormatTransferEvents = require(rootPrefix + "/lib/ruleEngine/Transfer"),
-  FormatApprovalEvents = require(rootPrefix + "/lib/ruleEngine/Approve");
+  FormatApprovalEvents = require(rootPrefix + "/lib/ruleEngine/Approve"),
+  FormatMintEvents = require(rootPrefix + "/lib/ruleEngine/Mint");
 
 let MatchCount = 0;
 let SwapInEtherscanNotInScript = 0;
@@ -81,6 +82,12 @@ class ConstructSummary {
         AllTranactionsCount++;
 
         console.log("txDetail.transactionHash: ", txDetail.transactionHash);
+
+        const mintSummarry = new FormatMintEvents().perform(txDetail);
+        if (mintSummarry.type) {
+          oThis.setAllCounts(mintSummarry, mintSummarry.kind);
+          continue;
+        }
 
         const transferSummarry = new FormatTransferEvents().perform(txDetail);
         if (transferSummarry.type) {
