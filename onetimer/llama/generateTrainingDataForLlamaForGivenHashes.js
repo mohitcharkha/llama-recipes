@@ -2,13 +2,13 @@
  *
  * Create training data for the model
  *
- * Usage: node onetimer/generateTrainingDataWithoutDecoded.js
+ * Usage: node onetimer/llama/generateTrainingDataForLlamaForGivenHashes.js
  *
  */
 
 const { writeFileSync } = require("fs");
 const { join } = require("path");
-const trainingHashes = require("./training_hashes_for_llama.json");
+const trainingHashes = require("./training_hashes_for_llama2.json");
 
 const rootPrefix = "../..",
   TransactionDetailModel = require(rootPrefix +
@@ -17,7 +17,7 @@ const rootPrefix = "../..",
 class GenerateTrainingData {
   constructor() {
     const oThis = this;
-    oThis.txnTypeLimit = 17;
+    oThis.txnTypeLimit = 200;
   }
 
   async perform() {
@@ -36,12 +36,19 @@ class GenerateTrainingData {
 
     let transactionHashes = [];
 
-    while (true) {
       let fetchTransactionDetailObj = new TransactionDetailModel();
       let transactionDetails = await fetchTransactionDetailObj.getByTransactionHash(
         trainingHashes
       );
 
+      try {
+        const data =  "[";
+        writeFileSync(join(__dirname, "training_dataset_llama2.json"), data, {
+          flag: "a+",
+        });
+      } catch (error) {
+        console.error(error.message);
+      }
       for (let txDetail of transactionDetails) {
         // Count of transactions for each txn_type
         // if (txnTypeToCountMap[txDetail.txnType]) {
@@ -69,16 +76,23 @@ class GenerateTrainingData {
         // Write to file
 
         try {
-          const data = JSON.stringify(prompt) + "\n";
-          writeFileSync(join(__dirname, "training_dataset_llama.jsonl"), data, {
+          const data = JSON.stringify(prompt) + ",\n";
+          writeFileSync(join(__dirname, "training_dataset_llama2.json"), data, {
             flag: "a+",
           });
         } catch (error) {
           console.error(error.message);
         }
       }
-      break;
-    }
+
+      try {
+        const data =  "]";
+        writeFileSync(join(__dirname, "training_dataset_llama2.json"), data, {
+          flag: "a+",
+        });
+      } catch (error) {
+        console.error(error.message);
+      }
 
     console.log("txnTypeToCountMap: ", txnTypeToCountMap);
 
@@ -93,7 +107,7 @@ class GenerateTrainingData {
     try {
       const data = JSON.stringify(transactionHashes) + "\n";
       writeFileSync(
-        join(__dirname, "transaction_hashes_for_llama.json"),
+        join(__dirname, "transaction_hashes_for_llama2.json"),
         data,
         {
           flag: "a+",

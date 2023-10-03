@@ -4,7 +4,7 @@
  *
  * Format Swap Events
  *
- * Usage: node onetimer/ruleBased/formatSwapEvents.js
+ * Usage: node onetimer/ruleBased/constructSummary2.js
  *
  */
 
