@@ -78,16 +78,26 @@ class ConstructSummary {
     }
 
     console.log("templateMatched: ", templateMatched);
-    if (templateMatched) {
-      
-      return oThis.generateSummary(txDetail, matchedTemplate);
+    let preprocessedVariablesValue = null;
+    if (templateMatched) { 
+      if (matchedTemplate.preprocessed_variables) {
+
+        const preprocessedVariables = matchedTemplate.preprocessed_variables;
+        const args = {};
+        for (let arg of preprocessedVariables.function.args) {
+          args[arg.name] = oThis.getActualValue(arg, txDetail);
+        }
+        preprocessedVariablesValue = oThis[preprocessedVariables.function.name](args);
+        console.log("preprocessedVariablesValue: ", preprocessedVariablesValue);
+      }
+      return oThis.generateSummary(txDetail, matchedTemplate, preprocessedVariablesValue);
     } 
 
-    console.log("Unmatched");
     return oThis.returnResult();
   }
+  
 
-  generateSummary(txDetail, matchedTemplate) {
+  generateSummary(txDetail, matchedTemplate, preprocessedVariablesValue) {
     const oThis = this;
 
     const variablesMap = {};
@@ -97,13 +107,8 @@ class ConstructSummary {
       const variableData = matchedTemplate.variables[variable];
       let dataPoint = variableData.data_point == "data" ? txDetail.data : txDetail.tempLogsData;
 
-      // Here we use lodash's get function to safely access nested properties
-      // console.log("variable.path: ", variableData.path);
-      // console.log("dataPoint: ", dataPoint);
-
       let variableValue = null;
       if (variableData.function) {
-        console.log
         // variableValue = oThis[variable.function.name](lodash.get(dataPoint, variableData.path), variableData.decimal);
         const args = {};
         for (let arg of variableData.function.args) {
@@ -112,7 +117,11 @@ class ConstructSummary {
 
         variableValue = oThis[variableData.function.name](args);
       } else {
-        variableValue = lodash.get(dataPoint, variableData.path);
+        if (variableData.data_point == "preprocessed_variables") {
+          variableValue = preprocessedVariablesValue[variableData.path];
+        } else {
+          variableValue = lodash.get(dataPoint, variableData.path);
+        }
       }
       variablesMap[variable] = variableValue;
     }
@@ -154,7 +163,10 @@ class ConstructSummary {
     let isAllEqual = true;
     if (highlightedEventTexts.length == formattedTextArr.length) {
       for (let i = 0; i < highlightedEventTexts.length; i++) {
-        const highlightedEventText = highlightedEventTexts[i];
+        let highlightedEventText = highlightedEventTexts[i];
+        if (highlightedEventText.split(" ")[0].toUpperCase() == "SWAP") {
+          highlightedEventText = highlightedEventText.split(" On")[0].toUpperCase()
+        }
         let formattedText = formattedTextArr[i];
 
         if (highlightedEventText.toUpperCase() != formattedText.toUpperCase()) {
@@ -206,6 +218,19 @@ class ConstructSummary {
   
     // loop trigger events
     for (let trigger of template.triggers) {
+      if (trigger.function) {
+
+        const args = {};
+        for (let arg of trigger.function.args) {
+          args[arg.name] = oThis.getActualValue(arg, txDetail);
+        }
+        eval(trigger.function.value);
+        if (this[trigger.function.name](args)) {
+          return true;
+        }
+
+        return false;
+      }
       if (!oThis.evaluateCondition(trigger, txDetail)) {
           return false;
       }
@@ -218,8 +243,6 @@ class ConstructSummary {
     const oThis = this;
 
     const condition = trigger.condition;
-    // console.log("condition->", condition);
-    // console.log("trigger->", trigger);
     switch (condition) {
         case "equals":
             return oThis.getActualValue(trigger, txDetail) == trigger.value;
@@ -265,8 +288,6 @@ class ConstructSummary {
     console .log("directoryPath: ", directoryPath);
 
     fs.readdirSync(directoryPath).forEach(function(file) {
-      let templateName = file.split(".")[0];
-      console.log("templateName: ", templateName);
       let templateJson = require("../../lib/templates/" + file);
       templatesArray.push(templateJson);
     }); 
@@ -285,7 +306,6 @@ class ConstructSummary {
     parts[0] = Number(parts[0]).toLocaleString('en-US');
     return parts.join('.');
   }
-    
 
   async fetchTransactionDetailObj(limit, offset) {
     let fetchTransactionDetailObj = new TransactionDetailModel();
@@ -293,7 +313,7 @@ class ConstructSummary {
       .select("*")
       // .where('highlighted_event_texts is not null')
       .where("transaction_hash is not null")
-      // .where(['transaction_hash = "0x0656691729ee764cb751032cf2eb9d72a2d058cbbaa675500a37642ea49b3c58"'])
+      // .where(['transaction_hash = "0xad8f40bfd4086a5e0d6165b06e92d857bb99e63bafbffeae188e8c0cea303a52"'])
       // .where('total_events = 0 ')
       // .where('total_events = 1')
       // .where('JSON_EXTRACT(data, "$.raw_input") = "0x"')
