@@ -19,7 +19,7 @@ const rootPrefix = "../..",
   FormatApprovalEvents = require(rootPrefix + "/lib/ruleEngine/Approve"),
   FormatMintEvents = require(rootPrefix + "/lib/ruleEngine/Mint"),
   FormatDepositEvents = require(rootPrefix + "/lib/ruleEngine/Deposit"),
-  FormatSwap2Events = require(rootPrefix + "/lib/ruleEngine/Swap2");
+  FormatSwap2Events = require(rootPrefix + "/lib/ruleEngine/MultiSwap");
 
 let MatchCount = 0;
 let SwapInEtherscanNotInScript = 0;
