@@ -1,6 +1,21 @@
 fs = require("fs");
-a = require("./training_dataset_llama.json");
+a = require("../../../../../dakshbhardwaj/Downloads/training_dataset_llama2.json");
 b = [];
+const BigNumber = require("bignumber.js");
+
+function convertToDecimal(value, decimal) {
+  if (!value) {
+    return 0;
+  }
+
+  if (!decimal) {
+    return value;
+  }
+
+  return new BigNumber(value)
+    .dividedBy(new BigNumber(10).pow(decimal))
+    .toString();
+}
 
 for (i = 0; i < a.length; i++) {
   input = JSON.parse(a[i].input);
@@ -36,7 +51,12 @@ for (i = 0; i < a.length; i++) {
     // delete token_transfer.method;
     // input.token_transfers[j] = token_transfer;
 
-    const token_transfer_string = `${token_transfer.type} from ${token_transfer.from.hash} to ${token_transfer.to.hash} for value ${token_transfer.total.value} with decimal ${token_transfer.total.decimals}`;
+    const token_transfer_string = `${token_transfer.type} from ${
+      token_transfer.from.hash
+    } to ${token_transfer.to.hash} for value ${convertToDecimal(
+      token_transfer.total.value,
+      token_transfer.total.decimals
+    )}`;
     token_transfers.push(token_transfer_string);
   }
   if (input.token_transfers.length > 0) {
@@ -53,7 +73,9 @@ for (i = 0; i < a.length; i++) {
     // input.event_logs[j].address_name = "dummy";
     // input.event_logs[j].address = input.event_logs[j].address.hash;
     // input.event_logs[j].topics = input.event_logs[j].topics[0];
-    const event_log_string = `${input.event_logs[j].address.hash} emitted ${input.event_logs[j].topics[0]} on position ${input.event_logs[j].index}`;
+    const event_log_string = `${input.event_logs[j].address.hash} emitted ${
+      input.event_logs[j].topics[0]
+    } on position ${input.event_logs[j].index}`;
     event_logs.push(event_log_string);
   }
   if (input.event_logs.length > 0) {
@@ -83,11 +105,11 @@ for (i = 0; i < a.length; i++) {
 
   string_input += `from: ${input.transactions.from.hash} to: ${
     input.transactions.to.hash
-  } value: ${input.transactions.value} method: ${
-    input.transactions.method
-  } types: "${input.transactions.tx_types.join(",")}" d_method_call: ${
-    input.transactions.decoded_input?.method_call || "NA"
-  } d_method_id: ${input.transactions.decoded_input?.method_id || "NA"}`;
+  } value: ${input.transactions.value || 0} method: ${input.transactions
+    .method || "NA"} types: "${input.transactions.tx_types.join(
+    ","
+  )}" d_method_call: ${input.transactions.decoded_input?.method_call ||
+    "NA"} d_method_id: ${input.transactions.decoded_input?.method_id || "NA"}`;
 
   a[i].input = input;
   b[i] = {};
@@ -98,8 +120,8 @@ for (i = 0; i < a.length; i++) {
   b[i].input = "";
   let output = JSON.parse(a[i].output);
   b[i].output = output.join(",");
-  if (i == 300) {
+  if (i == 10000) {
     break;
   }
 }
-fs.writeFileSync("alpaca_data_set5.json", JSON.stringify(b));
+fs.writeFileSync("alpaca_data.json", JSON.stringify(b));
