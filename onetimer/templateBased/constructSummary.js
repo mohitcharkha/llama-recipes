@@ -9,15 +9,13 @@
  */
 
 const lodash = require('lodash');
-
+const BigNumber = require('bignumber.js');
 
 const rootPrefix = "../..",
   TransactionDetailModel = require(rootPrefix + "/app/models/mysql/main/TransactionsDetails");
 
 let TemplateMatchCount = 0;
 let MatchCount = 0;
-let AllTranactionsCount = 0;
-
 let NotEqualCount = 0;
 class ConstructSummary {
   constructor() {
@@ -47,12 +45,12 @@ class ConstructSummary {
       }
   
       for (let txDetail of transactionDetails) {
+        console.log("txDetail.transactionHash: ", txDetail.transactionHash);
+
         const mintSummarry = oThis.constructSummaryIfTemplateMatched(txDetail , templatesArray); 
         if (mintSummarry.type) {
           oThis.setAllCounts(mintSummarry, mintSummarry.kind);
         } 
-
-        console.log("txDetail.highlightedEventTexts: ", txDetail.highlightedEventTexts);
       }
       offset = offset + limit;
 
@@ -61,7 +59,6 @@ class ConstructSummary {
       // }
     }
     console.log("::RESPONSE:: ", oThis.response);
-    console.log("AllTranactionsCount: ", AllTranactionsCount);
   }
 
   constructSummaryIfTemplateMatched(txDetail, templatesArray) {
@@ -82,12 +79,11 @@ class ConstructSummary {
 
     console.log("templateMatched: ", templateMatched);
     if (templateMatched) {
-      console.log("txDetail.transactionHash: ", txDetail.transactionHash);
       
       return oThis.generateSummary(txDetail, matchedTemplate);
     } 
 
-    console.log("Unmatched txDetail.transactionHash: ", txDetail.transactionHash);
+    console.log("Unmatched");
     return oThis.returnResult();
   }
 
@@ -102,16 +98,27 @@ class ConstructSummary {
       let dataPoint = variableData.data_point == "data" ? txDetail.data : txDetail.tempLogsData;
 
       // Here we use lodash's get function to safely access nested properties
-      console.log("variable.path: ", variableData.path);
-      console.log("dataPoint: ", dataPoint);
-      const variableValue = lodash.get(dataPoint, variableData.path);
+      // console.log("variable.path: ", variableData.path);
+      // console.log("dataPoint: ", dataPoint);
+
+      let variableValue = null;
+      if (variableData.function) {
+        console.log
+        // variableValue = oThis[variable.function.name](lodash.get(dataPoint, variableData.path), variableData.decimal);
+        const args = {};
+        for (let arg of variableData.function.args) {
+          args[arg.name] = lodash.get(dataPoint, arg.path);
+        }
+
+        variableValue = oThis[variableData.function.name](args);
+      } else {
+        variableValue = lodash.get(dataPoint, variableData.path);
+      }
       variablesMap[variable] = variableValue;
     }
-
     console.log("variablesMap: ", variablesMap);
 
     let message = matchedTemplate.message;
-    
     for (let variable in variablesMap) {
       message = message.replace(`{${variable}}`, variablesMap[variable]);
     }
@@ -133,8 +140,8 @@ class ConstructSummary {
   checkIfEqual(highlightedEventTexts, formattedTextArr, kind) {
     const oThis = this;
 
-    console.log("highlightedEventTexts: ", highlightedEventTexts);
-    console.log("formattedTextArr: ", formattedTextArr);
+    // console.log("highlightedEventTexts: ", highlightedEventTexts);
+    // console.log("formattedTextArr: ", formattedTextArr);
 
     if (highlightedEventTexts == null || highlightedEventTexts.length == 0) {
       console.log("etherscan_does_not_have_any_text: ", kind);
@@ -157,7 +164,6 @@ class ConstructSummary {
       }
 
       if (isAllEqual) {
-        MatchCount++;
         return {
           kind: kind,
           type: "exact_match",
@@ -171,6 +177,7 @@ class ConstructSummary {
     }
 
     if (sameActionDifferentLanguage) {
+      console.log("same_action_different_language: ", kind);
       return {
         kind: kind,
         type: "same_action_different_language"
@@ -196,22 +203,10 @@ class ConstructSummary {
 
   isTemplateMatched(template, txDetail) {
     const oThis = this;
-
-    let events = txDetail.tempLogsData;
-    let data = txDetail.data;
-
+  
     // loop trigger events
     for (let trigger of template.triggers) {
-      const dataPoint = trigger.data_point == "data" ? data : events;
-
-      // Here we use lodash's get function to safely access nested properties
-      const leftValue = lodash.get(dataPoint, trigger.path);
-      const rightValue = trigger.value;
-
-      console.log("leftValue: ", leftValue);
-      console.log("rightValue: ", rightValue);
-  
-      if (!oThis.evaluateCondition(leftValue, trigger.condition, rightValue)) {
+      if (!oThis.evaluateCondition(trigger, txDetail)) {
           return false;
       }
     }
@@ -219,20 +214,44 @@ class ConstructSummary {
     return true;
   }
 
-  evaluateCondition(leftValue, operator, rightValue) {
-    switch (operator) {
+  evaluateCondition(trigger, txDetail) {
+    const oThis = this;
+
+    const condition = trigger.condition;
+    // console.log("condition->", condition);
+    // console.log("trigger->", trigger);
+    switch (condition) {
         case "equals":
-            return leftValue == rightValue;
+            return oThis.getActualValue(trigger, txDetail) == trigger.value;
         case "notEquals":
-            return leftValue != rightValue;
+            return oThis.getActualValue(trigger, txDetail) != trigger.value;
         case "presentIn":
-            return rightValue.includes(leftValue);
+            return trigger.value.includes(oThis.getActualValue(trigger, txDetail));
         case "notPresentIn":
-            return !rightValue.includes(leftValue);
+            return !trigger.value.includes(oThis.getActualValue(trigger, txDetail));
+        case "contains":
+            return oThis.getActualValue(trigger, txDetail) && oThis.getActualValue(trigger, txDetail).includes(trigger.value);
+        case "or":
+            for (let subTrigger of trigger.triggers) {
+              // console.log("subTrigger: ", subTrigger);
+                if (oThis.evaluateCondition(subTrigger, txDetail)) {
+                    return true;
+                }
+            }
+            return false;
         default:
-            throw new Error(`Unsupported operator: ${operator}`);
+            throw new Error(`Unsupported operator: ${condition}`);
     }
   };
+  
+  getActualValue(trigger, txDetail) {
+    const oThis = this;
+    let events = txDetail.tempLogsData;
+    let data = txDetail.data;
+    const dataPoint = trigger.data_point == "data" ? data : events;
+
+    return lodash.get(dataPoint, trigger.path);
+  }
 
   // This function will return all the templates present in all json files in lib/templates/ folder
   getAllTemplates() {
@@ -254,6 +273,18 @@ class ConstructSummary {
 
     return templatesArray;
   }
+
+  formatNumber(args) {
+    const oThis = this;
+
+    const number = args.number;
+    const decimal = args.decimal || 18;
+    const value =  new BigNumber(number).dividedBy(new BigNumber(10).pow(decimal)).toString();
+
+    let parts = value.split('.');
+    parts[0] = Number(parts[0]).toLocaleString('en-US');
+    return parts.join('.');
+  }
     
 
   async fetchTransactionDetailObj(limit, offset) {
@@ -262,7 +293,7 @@ class ConstructSummary {
       .select("*")
       // .where('highlighted_event_texts is not null')
       .where("transaction_hash is not null")
-      // .where(['transaction_hash = "0x2fe00b754c2b28ac748034320c13c1e6c177f505b2cb7cac970af014063da05d"'])
+      // .where(['transaction_hash = "0x0656691729ee764cb751032cf2eb9d72a2d058cbbaa675500a37642ea49b3c58"'])
       // .where('total_events = 0 ')
       // .where('total_events = 1')
       // .where('JSON_EXTRACT(data, "$.raw_input") = "0x"')

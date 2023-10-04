@@ -1,0 +1,67 @@
+{
+  "type": "TokenTransfer",
+  "triggers": [
+    {
+      "data_point": "events",
+      "path": "items.length",
+      "condition": "equals",
+      "value": "1"
+    },
+    {
+      "data_point": "data",
+      "path": "token_transfers.length",
+      "condition": "equals",
+      "value": "1"
+    },
+    {
+      "condition": "or",
+      "triggers": [
+        {
+          "data_point": "events",
+          "path": "items[0].temp_function_name",
+          "condition": "equals",
+          "value": "Transfer"
+        },
+        {
+          "data_point": "events",
+          "path": "items[0].decoded.method_call",
+          "condition": "contains",
+          "value": "Transfer"
+        },
+        {
+          "data_point": "data",
+          "path": "method",
+          "condition": "equals",
+          "value": "transfer"
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "amount": {
+      "data_point": "data",
+      "function": {
+        "name": "formatNumber",
+        "args": [
+          {
+            "name": "number",
+            "path": "token_transfers[0].total.value"
+          },
+          {
+            "name": "decimal",
+            "path": "token_transfers[0].total.decimals"
+          }
+        ]
+      }
+    },
+    "tokenAddress": {
+      "data_point": "data",
+      "path": "token_transfers[0].token.address"
+    },
+    "toAddress": {
+      "data_point": "data",
+      "path": "token_transfers[0].to.hash"
+    }
+  },
+  "message": "Transfer {amount} {tokenAddress} To {toAddress}"
+}
