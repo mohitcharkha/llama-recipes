@@ -18,7 +18,8 @@ const rootPrefix = "../..",
   FormatTransferEvents = require(rootPrefix + "/lib/ruleEngine/Transfer"),
   FormatApprovalEvents = require(rootPrefix + "/lib/ruleEngine/Approve"),
   FormatMintEvents = require(rootPrefix + "/lib/ruleEngine/Mint"),
-  FormatDepositEvents = require(rootPrefix + "/lib/ruleEngine/Deposit");
+  FormatDepositEvents = require(rootPrefix + "/lib/ruleEngine/Deposit"),
+  FormatSwap2Events = require(rootPrefix + "/lib/ruleEngine/Swap2");
 
 let MatchCount = 0;
 let SwapInEtherscanNotInScript = 0;
@@ -58,6 +59,7 @@ class ConstructSummary {
 
     let limit = 100;
     let offset = 0;
+
     while (true) {
       console.log("Current offset: ", offset);
 
@@ -76,8 +78,8 @@ class ConstructSummary {
           txDetail.highlightedEventTexts &&
           txDetail.highlightedEventTexts.length > 1
         ) {
-          MultipleHighlightedEventTexts++;
-          continue;
+          // MultipleHighlightedEventTexts++;
+          // continue;
         }
 
         AllTranactionsCount++;
@@ -111,6 +113,12 @@ class ConstructSummary {
         const swapSummarry = new FormatSwapEvents().perform(txDetail);
         if (swapSummarry.type) {
           oThis.setAllCounts(swapSummarry, swapSummarry.kind);
+          continue;
+        }
+
+        const swap2Summarry = new FormatSwap2Events().perform(txDetail);
+        if (swap2Summarry.type) {
+          oThis.setAllCounts(swap2Summarry, swap2Summarry.kind);
           continue;
         }
 
