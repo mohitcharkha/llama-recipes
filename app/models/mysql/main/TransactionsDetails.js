@@ -166,6 +166,30 @@ class TransactionsDetailsModel extends ModelBase {
     return response;
   }
 
+    /**
+   * This method gets the transactions by transaction_hash
+   *
+   * @param {string} transactionHash
+   *
+   * @returns {Promise<Map>}
+   *
+   */
+    async getLlamaTrainingData() {
+      const oThis = this;
+      const response = [];
+      const dbRows = await oThis
+        .select("id, status, transaction_hash, data, logs_data, highlighted_event_texts")
+        .where('highlighted_event_texts is not null and highlighted_event_status = "SUCCESS" and status = "SUCCESS" and total_events >0')
+        .limit(20000)
+        .fire();
+  
+      for (let index = 0; index < dbRows.length; index++) {
+        const formatDbRow = oThis.formatDbData(dbRows[index]);
+        response.push(formatDbRow);
+      }
+      return response;
+    }
+
   /**
    * This method gets the transactions by transaction_hash
    *

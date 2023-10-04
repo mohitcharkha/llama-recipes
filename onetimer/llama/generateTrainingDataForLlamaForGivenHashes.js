@@ -8,7 +8,6 @@
 
 const { writeFileSync } = require("fs");
 const { join } = require("path");
-const trainingHashes = require("./training_hashes_for_llama2.json");
 
 const rootPrefix = "../..",
   TransactionDetailModel = require(rootPrefix +
@@ -37,9 +36,7 @@ class GenerateTrainingData {
     let transactionHashes = [];
 
       let fetchTransactionDetailObj = new TransactionDetailModel();
-      let transactionDetails = await fetchTransactionDetailObj.getByTransactionHash(
-        trainingHashes
-      );
+      let transactionDetails = await fetchTransactionDetailObj.getLlamaTrainingData();
 
       try {
         const data =  "[";
