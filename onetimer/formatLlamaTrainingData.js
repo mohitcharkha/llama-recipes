@@ -1,6 +1,7 @@
 fs = require("fs");
-a = require("../../../../../dakshbhardwaj/Downloads/training_dataset_llama2.json");
+a = require("../training_dataset_llama.json");
 b = [];
+c = {};
 const BigNumber = require("bignumber.js");
 
 function convertToDecimal(value, decimal) {
@@ -17,6 +18,13 @@ function convertToDecimal(value, decimal) {
     .toString();
 }
 
+function wordCount(str) {
+  return str.split(" ").filter((n) => {
+    return n != "";
+  }).length;
+}
+
+let count = 0;
 for (i = 0; i < a.length; i++) {
   input = JSON.parse(a[i].input);
   let string_input = "";
@@ -82,46 +90,86 @@ for (i = 0; i < a.length; i++) {
     string_input += `event_logs: "${event_logs.join(",")}", `;
   }
 
-  delete input.transactions.from.is_verified;
-  delete input.transactions.from.public_tags;
-  delete input.transactions.from.private_tags;
-  delete input.transactions.from.watchlist_names;
-  delete input.transactions.from.implementation_name;
-  delete input.transactions.from.is_contract;
+  // delete input.transactions.from.is_verified;
+  // delete input.transactions.from.public_tags;
+  // delete input.transactions.from.private_tags;
+  // delete input.transactions.from.watchlist_names;
+  // delete input.transactions.from.implementation_name;
+  // delete input.transactions.from.is_contract;
 
-  delete input.transactions.to.is_verified;
-  delete input.transactions.to.public_tags;
-  delete input.transactions.to.private_tags;
-  delete input.transactions.to.watchlist_names;
-  delete input.transactions.to.implementation_name;
-  delete input.transactions.to.is_contract;
+  // delete input.transactions.to.is_verified;
+  // delete input.transactions.to.public_tags;
+  // delete input.transactions.to.private_tags;
+  // delete input.transactions.to.watchlist_names;
+  // delete input.transactions.to.implementation_name;
+  // delete input.transactions.to.is_contract;
 
-  delete input.transactions.hash;
-  delete input.transactions.status;
-  delete input.transactions.tx_tag;
-  delete input.transactions.created_contract;
-  delete input.transactions.has_error_in_internal_txs;
-  delete input.transactions.actions;
+  // delete input.transactions.hash;
+  // delete input.transactions.status;
+  // delete input.transactions.tx_tag;
+  // delete input.transactions.created_contract;
+  // delete input.transactions.has_error_in_internal_txs;
+  // delete input.transactions.actions;
 
-  string_input += `from: ${input.transactions.from.hash} to: ${
-    input.transactions.to.hash
-  } value: ${input.transactions.value || 0} method: ${input.transactions
-    .method || "NA"} types: "${input.transactions.tx_types.join(
+  string_input += `from: ${input.transactions.from?.hash ?? "NA"} to: ${input
+    .transactions.to?.hash ?? "NA"} value: ${input.transactions.value ||
+    0} method: ${input.transactions.method ||
+    "NA"} types: "${input.transactions.tx_types.join(
     ","
   )}" d_method_call: ${input.transactions.decoded_input?.method_call ||
     "NA"} d_method_id: ${input.transactions.decoded_input?.method_id || "NA"}`;
 
   a[i].input = input;
-  b[i] = {};
+  if (wordCount(string_input) > 109) {
+    console.log(wordCount(string_input), `index ${i}`);
 
-  b[i].instruction =
+    continue;
+  }
+  // if (wordCount(string_input) > 142) {
+  //   console.log(wordCount(string_input), `index ${i}`);
+
+  //   continue;
+  // }
+  // if (wordCount(string_input) < 82) {
+  //   console.log(wordCount(string_input), `index ${i}`);
+
+  //   continue;
+  // }
+  b[count] = {};
+
+  b[count].instruction =
     "You are an expert in Ethereum blockchain and can explain transaction in one line. Here is my transaction: \n" +
     string_input;
-  b[i].input = "";
+
+  b[count].input = "";
   let output = JSON.parse(a[i].output);
-  b[i].output = output.join(",");
-  if (i == 10000) {
-    break;
-  }
+  b[count].output = output.join(",");
+  b[count].transactionHash = input.transactions.hash;
+
+  let firstWord = String(b[count].output).split(" ")[0];
+  c[firstWord] ||= [];
+  c[firstWord].push(b[count]);
+
+  count++;
+  // if (i == 1000) {
+  //   break;
+  // }
 }
-fs.writeFileSync("alpaca_data.json", JSON.stringify(b));
+let typeCount = 74;
+let maxPerTypeCount = 80;
+let finalOutput = [];
+for (let type in c) {
+  if (c[type].length < typeCount) {
+    console.log("skip " ,type, " ", c[type].length );
+    continue;
+  }
+  console.log("add  " ,type, " ", c[type].length );
+  finalOutput = finalOutput.concat(c[type].slice(0, typeCount === 0 ? c[type].length : maxPerTypeCount));
+}
+let transcationHashArray = [];
+for(let i in finalOutput){
+  transcationHashArray.push(finalOutput[i].transactionHash);
+  delete finalOutput[i].transactionHash;
+}
+fs.writeFileSync("alpaca_data.json", JSON.stringify(finalOutput));
+fs.writeFileSync("hashes.json", JSON.stringify(transcationHashArray));
