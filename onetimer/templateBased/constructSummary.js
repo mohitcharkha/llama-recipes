@@ -21,6 +21,7 @@ class ConstructSummary {
   constructor() {
     const oThis = this;
     oThis.response = {};
+    oThis.BigNumber = BigNumber;
   }
 
   async perform() {
@@ -87,8 +88,11 @@ class ConstructSummary {
         for (let arg of preprocessedVariables.function.args) {
           args[arg.name] = oThis.getActualValue(arg, txDetail);
         }
-        preprocessedVariablesValue = oThis[preprocessedVariables.function.name](args);
-        console.log("preprocessedVariablesValue: ", preprocessedVariablesValue);
+
+        const functionArguments = "args"; 
+        const functionDefinition = preprocessedVariables.function.value;
+        const dynamicFunction =  new Function(functionArguments, functionDefinition);
+        preprocessedVariablesValue = dynamicFunction(args, BigNumber);
       }
       return oThis.generateSummary(txDetail, matchedTemplate, preprocessedVariablesValue);
     } 
@@ -224,8 +228,11 @@ class ConstructSummary {
         for (let arg of trigger.function.args) {
           args[arg.name] = oThis.getActualValue(arg, txDetail);
         }
-        eval(trigger.function.value);
-        if (this[trigger.function.name](args)) {
+        
+        const functionArguments = "args"; 
+        const functionDefinition = trigger.function.value;
+        const dynamicFunction =  new Function(functionArguments, functionDefinition);      
+        if (dynamicFunction(args)) {
           return true;
         }
 
@@ -271,6 +278,10 @@ class ConstructSummary {
     const oThis = this;
     let events = txDetail.tempLogsData;
     let data = txDetail.data;
+
+    if (trigger.data_point == "library") {
+      return oThis[trigger.name];
+    }
     const dataPoint = trigger.data_point == "data" ? data : events;
 
     return lodash.get(dataPoint, trigger.path);
