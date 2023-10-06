@@ -1,5 +1,5 @@
 fs = require("fs");
-a = require("../training_dataset_llama.json");
+a = require("../training_dataset_llama2_14k.json");
 b = [];
 c = {};
 const BigNumber = require("bignumber.js");
@@ -60,8 +60,8 @@ for (i = 0; i < a.length; i++) {
     // input.token_transfers[j] = token_transfer;
 
     const token_transfer_string = `${token_transfer.type} from ${
-      token_transfer.from.hash
-    } to ${token_transfer.to.hash} for value ${convertToDecimal(
+      token_transfer.from.name ?? "NA"
+    } to ${token_transfer.to.name ?? "NA"} for value ${convertToDecimal(
       token_transfer.total.value,
       token_transfer.total.decimals
     )}`;
@@ -71,9 +71,9 @@ for (i = 0; i < a.length; i++) {
     string_input += `token_transfers: "${token_transfers.join(",")}", `;
   }
 
-  if (input.event_logs.length == 0) {
-    console.log("event logs empty", input);
-  }
+  // if (input.event_logs.length == 0) {
+  //   console.log("event logs empty", input);
+  // }
 
   let event_logs = [];
   for (j = 0; j < input.event_logs.length; j++) {
@@ -83,7 +83,7 @@ for (i = 0; i < a.length; i++) {
     // input.event_logs[j].topics = input.event_logs[j].topics[0];
     const event_log_string = `${input.event_logs[j].address.hash} emitted ${
       input.event_logs[j].topics[0]
-    } on position ${input.event_logs[j].index}`;
+    }`;
     event_logs.push(event_log_string);
   }
   if (input.event_logs.length > 0) {
@@ -116,15 +116,15 @@ for (i = 0; i < a.length; i++) {
     0} method: ${input.transactions.method ||
     "NA"} types: "${input.transactions.tx_types.join(
     ","
-  )}" d_method_call: ${input.transactions.decoded_input?.method_call ||
+  )}" d_method_name: ${input.transactions.decoded_input?.method_call.split("(")?.[0] ||
     "NA"} d_method_id: ${input.transactions.decoded_input?.method_id || "NA"}`;
 
   a[i].input = input;
-  if (wordCount(string_input) > 109) {
-    console.log(wordCount(string_input), `index ${i}`);
+  // if (wordCount(string_input) > 109) {
+  //   console.log(wordCount(string_input), `index ${i}`);
 
-    continue;
-  }
+  //   continue;
+  // }
   // if (wordCount(string_input) > 142) {
   //   console.log(wordCount(string_input), `index ${i}`);
 
@@ -135,18 +135,22 @@ for (i = 0; i < a.length; i++) {
 
   //   continue;
   // }
+  if(JSON.parse(a[i].output).length > 1){
+    console.log("skipping multi line outputs")
+    continue;
+  }
   b[count] = {};
 
   b[count].instruction =
-    "You are an expert in Ethereum blockchain and can explain transaction in one line. Here is my transaction: \n" +
-    string_input;
+    "You are an expert in Ethereum blockchain and can classify the transactions into their specific categories";
 
-  b[count].input = "";
+  b[count].input = string_input.trim();
   let output = JSON.parse(a[i].output);
-  b[count].output = output.join(",");
+
+  let firstWord = String(output.join(",")).split(" ")[0];
+  b[count].output = `${firstWord}`;
   b[count].transactionHash = input.transactions.hash;
 
-  let firstWord = String(b[count].output).split(" ")[0];
   c[firstWord] ||= [];
   c[firstWord].push(b[count]);
 
@@ -155,8 +159,8 @@ for (i = 0; i < a.length; i++) {
   //   break;
   // }
 }
-let typeCount = 74;
-let maxPerTypeCount = 80;
+let typeCount = 300;
+let maxPerTypeCount = 75;
 let finalOutput = [];
 for (let type in c) {
   if (c[type].length < typeCount) {

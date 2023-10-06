@@ -42,7 +42,11 @@ cd workspace/llama_recipes
 
 ## Running the Fine Tunning Modal
 
-python -m llama_recipes.finetuning --lr 1e-6 --use_peft --peft_method lora --quantization --dataset alpaca_dataset --save_model --model_name /workspace/Llama-2-7b-chat-hf --output_dir /workspace/Llama-2-7b-chat-hf-trained
+nohup python -m llama_recipes.finetuning --num_epochs 20 --use_peft --peft_method lora --quantization --dataset alpaca_dataset --save_model --model_name /workspace/Llama-2-7b-chat-hf --output_dir /workspace/Llama-2-7b-chat-hf-trained &
+
+## Running fine tuning for multi-gpu
+
+nohup torchrun --nnodes 1 --nproc_per_node 2 examples/finetuning.py --use_peft --peft_method lora --model_name /workspace/Llama-2-7b-chat-hf --pure_bf16 --output_dir /workspace/Llama-2-7b-chat-hf-trained &
 
 ## Running the inference
 
@@ -50,4 +54,4 @@ python examples/chat_completion/chat_completion.py --model_name /workspace/Llama
 
 ## Running inference directly with inference file
 
-python examples/inference.py --model_name /workspace/Llama-2-7b-chat-hf --peft_model /workspace/Llama-2-7b-chat-hf-trained --prompt_file examples/chat_completion/llma_inference_data.json --quantization --max_new_tokens 200
+python examples/inference.py --model_name /workspace/Llama-2-7b-chat-hf --peft_model /workspace/Llama-2-7b-chat-hf-trained --prompt_file examples/chat_completion/llama_inference_data.json --quantization --max_new_tokens 2000
