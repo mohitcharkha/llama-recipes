@@ -1,5 +1,5 @@
 fs = require("fs");
-a = require("./alpaca_data.json");
+a = require("./alpaca_data_50k_training.json");
 
 function wordCount(str) {
   return str.split(" ").filter(n => {

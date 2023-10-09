@@ -1,8 +1,9 @@
 fs = require("fs");
-a = require("../training_dataset_llama2_14k.json");
+a = require("../training_dataset_llama2_50k.json");
 b = [];
 c = {};
 const BigNumber = require("bignumber.js");
+hashes = require("../txnHashes.json");
 
 function convertToDecimal(value, decimal) {
   if (!value) {
@@ -120,11 +121,11 @@ for (i = 0; i < a.length; i++) {
     "NA"} d_method_id: ${input.transactions.decoded_input?.method_id || "NA"}`;
 
   a[i].input = input;
-  // if (wordCount(string_input) > 109) {
-  //   console.log(wordCount(string_input), `index ${i}`);
+  if (wordCount(string_input) > 109) {
+    console.log(wordCount(string_input), `index ${i}`);
 
-  //   continue;
-  // }
+    continue;
+  }
   // if (wordCount(string_input) > 142) {
   //   console.log(wordCount(string_input), `index ${i}`);
 
@@ -139,6 +140,9 @@ for (i = 0; i < a.length; i++) {
     console.log("skipping multi line outputs")
     continue;
   }
+  // if(hashes.includes(input.transactions.hash)){
+  //   continue
+  // }
   b[count] = {};
 
   b[count].instruction =
@@ -159,8 +163,8 @@ for (i = 0; i < a.length; i++) {
   //   break;
   // }
 }
-let typeCount = 300;
-let maxPerTypeCount = 75;
+let typeCount = 100;
+let maxPerTypeCount = 90;
 let finalOutput = [];
 for (let type in c) {
   if (c[type].length < typeCount) {
@@ -168,12 +172,12 @@ for (let type in c) {
     continue;
   }
   console.log("add  " ,type, " ", c[type].length );
-  finalOutput = finalOutput.concat(c[type].slice(0, typeCount === 0 ? c[type].length : maxPerTypeCount));
+  finalOutput = finalOutput.concat(c[type].slice(0, maxPerTypeCount === 0 ? c[type].length : maxPerTypeCount));
 }
 let transcationHashArray = [];
 for(let i in finalOutput){
   transcationHashArray.push(finalOutput[i].transactionHash);
-  delete finalOutput[i].transactionHash;
+  finalOutput[i].transactionHash;
 }
-fs.writeFileSync("alpaca_data.json", JSON.stringify(finalOutput));
-fs.writeFileSync("hashes.json", JSON.stringify(transcationHashArray));
+fs.writeFileSync("alpaca_data_50k_training.json", JSON.stringify(finalOutput));
+fs.writeFileSync("hashes_50k_training.json", JSON.stringify(transcationHashArray));
