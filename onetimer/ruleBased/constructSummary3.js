@@ -12,9 +12,11 @@ const rootPrefix = "../..",
   FormatMintEvents = require(rootPrefix + "/lib/ruleBasedWithoutTrigger/Mint"),
   FormatSaleEvents = require(rootPrefix + "/lib/ruleBasedWithoutTrigger/Sale"),
   FormatDepositEvents = require(rootPrefix +
-    "/lib/ruleBasedWithoutTrigger/Deposit");
+    "/lib/ruleBasedWithoutTrigger/Deposit"),
+  FormatRevokeEvents = require(rootPrefix +
+    "/lib/ruleBasedWithoutTrigger/Revoke");
 
-// Script to run: node onetimer/ruleBased/constructSummary3.js transfer
+// Script to run: node onetimer/ruleBased/constructSummary3.js revoked
 
 let AllTranactionsCount = 0;
 
@@ -72,10 +74,7 @@ class ConstructSummary {
         }
 
         if (category == "approved") {
-          const approveSummarry = new FormatApproveEvents().perform(
-            txDetail,
-            "approved"
-          );
+          const approveSummarry = new FormatApproveEvents().perform(txDetail);
           console.log("approveSummarry: ", approveSummarry);
           if (approveSummarry.type) {
             oThis.setAllCounts(approveSummarry, approveSummarry.kind);
@@ -84,10 +83,7 @@ class ConstructSummary {
         }
 
         if (category == "revoked") {
-          const revokeSummarry = new FormatApproveEvents().perform(
-            txDetail,
-            "revoked"
-          );
+          const revokeSummarry = new FormatRevokeEvents().perform(txDetail);
           console.log("revokeSummarry: ", revokeSummarry);
           if (revokeSummarry.type) {
             oThis.setAllCounts(revokeSummarry, revokeSummarry.kind);
