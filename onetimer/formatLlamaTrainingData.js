@@ -3,7 +3,6 @@ a = require("../training_dataset_llama2_50k.json");
 b = [];
 c = {};
 const BigNumber = require("bignumber.js");
-hashes = require("../txnHashes.json");
 
 function convertToDecimal(value, decimal) {
   if (!value) {
@@ -140,9 +139,6 @@ for (i = 0; i < a.length; i++) {
     console.log("skipping multi line outputs")
     continue;
   }
-  // if(hashes.includes(input.transactions.hash)){
-  //   continue
-  // }
   b[count] = {};
 
   b[count].instruction =
@@ -163,8 +159,8 @@ for (i = 0; i < a.length; i++) {
   //   break;
   // }
 }
-let typeCount = 100;
-let maxPerTypeCount = 90;
+let typeCount = 0;
+let maxPerTypeCount = 0;
 let finalOutput = [];
 for (let type in c) {
   if (c[type].length < typeCount) {
@@ -177,7 +173,7 @@ for (let type in c) {
 let transcationHashArray = [];
 for(let i in finalOutput){
   transcationHashArray.push(finalOutput[i].transactionHash);
-  finalOutput[i].transactionHash;
+  delete finalOutput[i].transactionHash;
 }
 fs.writeFileSync("alpaca_data_50k_training.json", JSON.stringify(finalOutput));
 fs.writeFileSync("hashes_50k_training.json", JSON.stringify(transcationHashArray));
