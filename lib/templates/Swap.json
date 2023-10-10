@@ -1,20 +1,5 @@
 {
-  "type": "SingleSwap",
-  "triggers": [
-    {
-      "data_point": "events",
-      "function": {
-        "name": "checkIfSingleSwap",
-        "args": [
-          {
-            "name": "eventsArray",
-            "path": "items"
-          }
-        ],
-        "value": "const eventsArray = args.eventsArray; if (eventsArray.length == 0) {      return false;    }    let swapEvents = [];    let index = 0;    for (let eventLog of eventsArray) {      const methodCall = eventLog && eventLog.decoded && eventLog.decoded.method_call;      const method = methodCall && methodCall.split('(')[0];      if ((method || eventLog.temp_function_name) === 'Swap') {        swapEvents.push({          index: index,          eventLog: eventLog,        });      }      index++;    }    if (swapEvents.length != 1 ) {      return false;    }    const swapEvent = swapEvents[0];    let transferEventBeforeSwap = 0;    for (let i = swapEvent.index - 1; i >= 0; i--) {      const eventLog = eventsArray[i];      const methodCall = eventLog && eventLog.decoded && eventLog.decoded.method_call;      const method = methodCall && methodCall.split('(')[0];      if ((method || eventLog.temp_function_name) === 'Transfer') {        transferEventBeforeSwap++;      }    }    if (transferEventBeforeSwap < 2) {      return false;    }    return true;"
-      }
-    }
-  ],
+  "type": "Swap",
   "preprocessed_variables": {
     "function": {
       "name": "getSwapDetails",
@@ -34,26 +19,20 @@
           "data_point": "library"
         }
       ],
-      "value": "const BigNumber = args.BigNumber; const eventsArray = args.eventsArray;    const tokenTransfers = args.tokenTransfers;    let convertToDecimal = (value, decimal) =>      new BigNumber(value)      .dividedBy(new BigNumber(10).pow(decimal))      .toString();    let swapEvent = null;    for (let eventLog of eventsArray) {      const methodCall = eventLog && eventLog.decoded && eventLog.decoded.method_call;      const method = methodCall && methodCall.split('(')[0];      if ((method || eventLog.temp_function_name) === 'Swap') {        swapEvent = eventLog;        break;      }    }    const swapContractAddress = swapEvent.address.hash.toLowerCase();    let incomingAmount = new BigNumber(0);    let outgoingAmount = new BigNumber(0);    let incomingTokenAddress = null;    let outgoingTokenAddress = null;    for (let tokenTransfer of tokenTransfers) {      const tokenTransferToAddress = tokenTransfer.to.hash.toLowerCase();      const tokenTransferFromAddress = tokenTransfer.from.hash.toLowerCase();      if (tokenTransferToAddress == swapContractAddress) {        const decimal = tokenTransfer.total.decimals;        const formattedOutgoingAmount = convertToDecimal(          tokenTransfer.total.value,          decimal        );        incomingAmount = incomingAmount.plus(formattedOutgoingAmount);        incomingTokenAddress = tokenTransfer.token.address;      }      if (tokenTransferFromAddress == swapContractAddress) {        const decimal = tokenTransfer.total.decimals;        const formattedOutgoingAmount = convertToDecimal(          tokenTransfer.total.value,          decimal        );        outgoingAmount = outgoingAmount.plus(formattedOutgoingAmount);        outgoingTokenAddress = tokenTransfer.token.address;      }    }    if (      incomingTokenAddress &&      incomingTokenAddress.toUpperCase() ==        '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'.toUpperCase()    ) {      incomingTokenAddress = 'Ether';    }    if (      outgoingTokenAddress &&      outgoingTokenAddress.toUpperCase() ==        '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'.toUpperCase()    ) {      outgoingTokenAddress = 'Ether';    }    let convertToNumberWithCommas = (value) => {      let parts = value.split('.');      parts[0] = Number(parts[0]).toLocaleString('en-US');      return parts.join('.');    };    return {      incomingAmount: convertToNumberWithCommas(incomingAmount.toString()),      outgoingAmount: convertToNumberWithCommas(outgoingAmount.toString()),      incomingTokenAddress: incomingTokenAddress,      outgoingTokenAddress: outgoingTokenAddress    }"
+      "value": "const BigNumber = args.BigNumber; const eventsArray = args.eventsArray;     const getSwapEvents = (eventsArray) => {      const swapEvents = [];        for (let eventLog of eventsArray) {          const methodCall = eventLog && eventLog.decoded && eventLog.decoded.method_call;          const methodName = methodCall && methodCall.split('(')[0];          if (methodName === 'Swap') {              swapEvents.push(eventLog);          }      }        return swapEvents;    };      let swapEvents = getSwapEvents(eventsArray);      const assignBiggerValue = (amount0In, amount1In) => {      const amount0 = BigInt(amount0In);      const amount1 = BigInt(amount1In);        return amount0 >= amount1 ? amount0In : amount1In;    };        const addCommas = (value) => {      console.log('value::', value); let parts = value.split('.');      parts[0] = parts[0].toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');      console.log('value2::', parts[0]);  return parts.join('.');    };      const formatNumber = (number, decimal) => {      if (decimal == 0) {          return addCommas(number);      }      decimal = decimal || 18;        let value = new BigNumber(number)          .dividedBy(new BigNumber(10).pow(decimal))          .toString(10);        if (value.startsWith('-')) {          value = value.replace('-', '');      }        return addCommas(value);    };      const swapDetailsArray = [];    for (let event of swapEvents) {      const parameters = event.decoded.parameters;      const methodId = event.decoded.method_id;      const logIndex = event.index;        const paramsNameToValueMap = {};      for (let param of parameters) {        if (!paramsNameToValueMap[param.name]) {          paramsNameToValueMap[param.name] = param.value;        }      }      const swapDetail = {        swapContractAddress: event.address.hash,        index: logIndex      };        if (methodId == 'd78ad95f') {        swapDetail.incomingAmount = assignBiggerValue( paramsNameToValueMap['amount0In'], paramsNameToValueMap['amount1In']);        swapDetail.outgoingAmount = assignBiggerValue( paramsNameToValueMap['amount0Out'], paramsNameToValueMap['amount1Out']);      } else {        if (paramsNameToValueMap['amount0'] < 0) {          swapDetail.outgoingAmount = paramsNameToValueMap['amount0'];          swapDetail.incomingAmount = paramsNameToValueMap['amount1'];        } else {          swapDetail.outgoingAmount = paramsNameToValueMap['amount1'];          swapDetail.incomingAmount = paramsNameToValueMap['amount0'];        }      }        swapDetailsArray.push(swapDetail);    }      const tokenTransfers = args.tokenTransfers;    const formattedSwapDetailsArray = [];      let decimalNull = false;    for (let i = 0; i < swapDetailsArray.length; i++) {      const swapDetail = swapDetailsArray[i];      const swapContractAddress = swapDetail.swapContractAddress.toLowerCase();      const currentSwapIndex = swapDetail.index;      const previousSwapIndex = i > 0 ? swapDetailsArray[i - 1].index : 0;        for (let tokenTransferObj of tokenTransfers) {        const tokenTransferFromAddress = tokenTransferObj.from.hash.toLowerCase();        const tokenTransferToAddress = tokenTransferObj.to.hash.toLowerCase();        const tokenTransferLogIndex = tokenTransferObj.log_index;          if(tokenTransferLogIndex < currentSwapIndex && tokenTransferLogIndex >= previousSwapIndex) {          if (!swapDetail.outgoingAddress && tokenTransferFromAddress == swapContractAddress) {            swapDetail.outgoingAddress = tokenTransferObj.token.address;            const decimal = tokenTransferObj.total.decimals;            if (decimal == null) {              decimalNull = true;            }            swapDetail.outgoingDecimal = decimal;            swapDetail.outgoingAmount = formatNumber(swapDetail.outgoingAmount, decimal);          }          if (!swapDetail.incomingAddress && tokenTransferToAddress == swapContractAddress) {            swapDetail.incomingAddress = tokenTransferObj.token.address;            const decimal = tokenTransferObj.total.decimals;            swapDetail.incomingDecimal = decimal;            if (decimal == null) {              decimalNull = true;            }            swapDetail.incomingAmount = formatNumber(swapDetail.incomingAmount , decimal);          }        }         }        if (i != 0 && !swapDetail.incomingAddress) {        swapDetail.incomingAddress = formattedSwapDetailsArray[i-1].outgoingAddress;        swapDetail.incomingAmount = formatNumber(swapDetail.incomingAmount,  formattedSwapDetailsArray[i-1].outgoingDecimal);      }         if (i == (swapDetailsArray.length - 1) && !swapDetail.outgoingAddress) {        swapDetail.outgoingAddress = 'Ether';        swapDetail.outgoingAmount = formatNumber(swapDetail.outgoingAmount,  18);      }        formattedSwapDetailsArray.push(swapDetail);    }      return formattedSwapDetailsArray;"
     }
   },
-  "variables": {
-    "incomingAmount": {
-      "data_point": "preprocessed_variables",
-      "path": "incomingAmount"
-    },
-    "incomingTokenAddress": {
-      "data_point": "preprocessed_variables",
-      "path": "incomingTokenAddress"
-    },
-    "outgoingAmount": {
-      "data_point": "preprocessed_variables",
-      "path": "outgoingAmount"
-    },
-    "outgoingTokenAddress": {
-      "data_point": "preprocessed_variables",
-      "path": "outgoingTokenAddress"
+  "variables": [
+    "incomingAmount",
+    "incomingAddress",
+    "outgoingAmount",
+    "outgoingAddress"
+  ],
+  "message": {
+    "text": "Swap {incomingAmount} {incomingAddress} For {outgoingAmount} {outgoingAddress}",
+    "function": {
+      "name": "constructSwapSummary",
+      "value": "const preprocessedVariables = args.preprocessedVariables;    const template = args.template;    const formattedTextArr = [];    for (let item of preprocessedVariables) {            let message = template.message.text;      for (let variable of template.variables) {        let variable2 = '{' + variable + '}';        message = message.replace(variable2, item[variable]);      }      formattedTextArr.push(message);    }    return formattedTextArr;"
     }
-  },
-  "message": "Swap {incomingAmount} {incomingTokenAddress} For {outgoingAmount} {outgoingTokenAddress}"
+  }
 }
