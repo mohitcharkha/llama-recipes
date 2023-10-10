@@ -8,14 +8,15 @@
  *
  */
 
-const lodash = require('lodash');
-const BigNumber = require('bignumber.js');
+const lodash = require("lodash");
+const BigNumber = require("bignumber.js");
 
-const fs = require('fs'),
-  parse = require('csv-parse');
+const fs = require("fs"),
+  parse = require("csv-parse");
 
 const rootPrefix = "../..",
-  TransactionDetailModel = require(rootPrefix + "/app/models/mysql/main/TransactionsDetails");
+  TransactionDetailModel = require(rootPrefix +
+    "/app/models/mysql/main/TransactionsDetails");
 
 let totalEvents = 0;
 class ConstructSummary {
@@ -24,12 +25,12 @@ class ConstructSummary {
     oThis.response = {};
     oThis.BigNumber = BigNumber;
 
-    oThis.eventType = "Swap";
+    oThis.eventType = "Transfer";
   }
 
   async perform() {
     const oThis = this;
-    
+
     await oThis.processFromCsv();
 
     console.log("::RESPONSE:: ", oThis.response);
@@ -46,7 +47,7 @@ class ConstructSummary {
 
     let page = 1;
     const template = oThis.getTemplate(oThis.eventType);
-    while(true) {
+    while (true) {
       console.log("Current page: ", page);
       const txDetails = await oThis.getTxDetailsForCsvRows(csvRows, page);
 
@@ -61,15 +62,14 @@ class ConstructSummary {
         console.log("txDetail.transactionHash: ", txDetail.transactionHash);
 
         const template = oThis.getTemplate(oThis.eventType);
-        const summary = oThis.constructSummary(txDetail , template);
+        const summary = oThis.constructSummary(txDetail, template);
         if (summary.type) {
           oThis.setAllCounts(summary, summary.kind);
-        } 
+        }
       }
 
       page++;
     }
-
   }
 
   async getTxDetailsForCsvRows(csvRows, page) {
@@ -77,7 +77,7 @@ class ConstructSummary {
 
     let transactionHashArr = [];
     let start = (page - 1) * 10000;
-    for(let i = start; i < start + 10000; i++) {
+    for (let i = start; i < start + 10000; i++) {
       let csvRow = csvRows[i];
       if (!csvRow) {
         break;
@@ -100,40 +100,90 @@ class ConstructSummary {
 
     let preprocessedVariablesValues = null;
     if (template.preprocessed_variables) {
-
       const preprocessedVariables = template.preprocessed_variables;
       const args = {};
       for (let arg of preprocessedVariables.function.args) {
         args[arg.name] = oThis.getActualValue(arg, txDetail);
       }
 
-      const functionArguments = "args"; 
+      const functionArguments = "args";
       const functionDefinition = preprocessedVariables.function.value;
-      const dynamicFunction =  new Function(functionArguments, functionDefinition);
+      const dynamicFunction = new Function(
+        functionArguments,
+        functionDefinition
+      );
       preprocessedVariablesValues = dynamicFunction(args);
 
       // preprocessedVariablesValues = oThis.getSwapDetails(args);
-      
+
       // console.log("preprocessedVariablesValues::: ", preprocessedVariablesValues);
     }
 
-    return oThis.generateSummary(txDetail, template, preprocessedVariablesValues);
+    return oThis.generateSummary(
+      txDetail,
+      template,
+      preprocessedVariablesValues
+    );
   }
 
   generateSummary(txDetail, template, preprocessedVariablesValue) {
     const oThis = this;
 
-    const args = {
-      template: template,
-      preprocessedVariables: preprocessedVariablesValue
-    };
-    
-    const functionArguments = "args"; 
-    const functionDefinition = template.message.function.value;
-    const dynamicFunction =  new Function(functionArguments, functionDefinition);
-    const formattedTextArr = dynamicFunction(args);
+    let formattedTextArr = [];
+    const variablesMap = {};
 
-    return oThis.checkIfEqual(txDetail.highlightedEventTexts, formattedTextArr, template.type);
+    if (template.message.function) {
+      const args = {
+        template: template,
+        preprocessedVariables: preprocessedVariablesValue,
+      };
+
+      const functionArguments = "args";
+      const functionDefinition = template.message.function.value;
+      const dynamicFunction = new Function(
+        functionArguments,
+        functionDefinition
+      );
+      formattedTextArr = dynamicFunction(args);
+    } else {
+      for (let variable in template.variables) {
+        const variableData = template.variables[variable];
+        let dataPoint =
+          variableData.data_point == "data"
+            ? txDetail.data
+            : txDetail.tempLogsData;
+
+        let variableValue = null;
+        if (variableData.function) {
+          const args = {};
+          for (let arg of variableData.function.args) {
+            args[arg.name] = lodash.get(dataPoint, arg.path);
+          }
+
+          variableValue = oThis[variableData.function.name](args);
+        } else {
+          if (variableData.data_point == "preprocessed_variables") {
+            variableValue = preprocessedVariablesValue[variableData.path];
+          } else {
+            variableValue = lodash.get(dataPoint, variableData.path);
+          }
+        }
+        variablesMap[variable] = variableValue;
+      }
+      console.log("variablesMap: ", variablesMap);
+
+      let message = template.message;
+      for (let variable in variablesMap) {
+        message = message.replace(`{${variable}}`, variablesMap[variable]);
+      }
+      formattedTextArr.push(message);
+    }
+
+    return oThis.checkIfEqual(
+      txDetail.highlightedEventTexts,
+      formattedTextArr,
+      template.type
+    );
   }
 
   returnResult() {
@@ -142,8 +192,8 @@ class ConstructSummary {
     return {
       did_not_match: true,
       kind: "",
-      type: null
-    }
+      type: null,
+    };
   }
 
   checkIfEqual(highlightedEventTexts, formattedTextArr, kind) {
@@ -156,16 +206,16 @@ class ConstructSummary {
       console.log("etherscan_does_not_have_any_text: ", kind);
       return {
         kind: kind,
-        type: "etherscan_does_not_have_any_text"
-      }
+        type: "etherscan_does_not_have_any_text",
+      };
     }
 
     if (formattedTextArr == null || formattedTextArr.length == 0) {
       console.log("template_did_not_generate_any_summary: ", kind);
       return {
         kind: kind,
-        type: "template_did_not_generate_any_summary"
-      }
+        type: "template_did_not_generate_any_summary",
+      };
     }
 
     let isAllEqual = true;
@@ -173,7 +223,9 @@ class ConstructSummary {
       for (let i = 0; i < highlightedEventTexts.length; i++) {
         let highlightedEventText = highlightedEventTexts[i];
         if (highlightedEventText.split(" ")[0].toUpperCase() == "SWAP") {
-          highlightedEventText = highlightedEventText.split(" On")[0].toUpperCase()
+          highlightedEventText = highlightedEventText
+            .split(" On")[0]
+            .toUpperCase();
         }
         let formattedText = formattedTextArr[i];
 
@@ -202,13 +254,17 @@ class ConstructSummary {
         return {
           kind: kind,
           type: "exact_match",
-        }
+        };
       }
     }
 
-
     let sameActionDifferentLanguage = false;
-    if (formattedTextArr[0] && highlightedEventTexts[0] && formattedTextArr[0].split(" ")[0].toUpperCase() == highlightedEventTexts[0].split(" ")[0].toUpperCase()) {
+    if (
+      formattedTextArr[0] &&
+      highlightedEventTexts[0] &&
+      formattedTextArr[0].split(" ")[0].toUpperCase() ==
+        highlightedEventTexts[0].split(" ")[0].toUpperCase()
+    ) {
       sameActionDifferentLanguage = true;
     }
 
@@ -216,15 +272,15 @@ class ConstructSummary {
       console.log("same_action_different_language: ", kind);
       return {
         kind: kind,
-        type: "same_action_different_language"
-      }
-    } else{
+        type: "same_action_different_language",
+      };
+    } else {
       console.log("etherscan_does_not_classify_as_given_action: ", kind);
 
       return {
         kind: kind,
-        type: "etherscan_does_not_classify_as_given_action"
-      }
+        type: "etherscan_does_not_classify_as_given_action",
+      };
     }
   }
 
@@ -236,7 +292,7 @@ class ConstructSummary {
       oThis.response[actionName][summary.type] || 0;
     oThis.response[actionName][summary.type]++;
   }
-  
+
   getActualValue(trigger, txDetail) {
     const oThis = this;
     let events = txDetail.logsData;
@@ -262,7 +318,7 @@ class ConstructSummary {
     fs.readdirSync(directoryPath).forEach(function(file) {
       let templateJson = require("../../lib/templates/" + file);
       templatesMap[templateJson.type] = templateJson;
-    }); 
+    });
 
     return templatesMap[eventType];
   }
@@ -273,7 +329,9 @@ class ConstructSummary {
       .select("*")
       // .where('highlighted_event_texts is not null')
       .where("transaction_hash is not null")
-      .where(['transaction_hash = "0x5b81d74943d4529bd5d64d81cf48b008ea302f2dfbff633af45697dd062d2d9d"'])
+      .where([
+        'transaction_hash = "0x5b81d74943d4529bd5d64d81cf48b008ea302f2dfbff633af45697dd062d2d9d"',
+      ])
       // .where('total_events = 0 ')
       // .where('total_events = 1')
       // .where('JSON_EXTRACT(data, "$.raw_input") = "0x"')
@@ -322,21 +380,35 @@ class ConstructSummary {
       try {
         if (fs.existsSync(`${csvFilePath}`)) {
           fs.createReadStream(`${csvFilePath}`)
-            .pipe(parse({ delimiter: ',', from_line: 2 }))
-            .on('data', (data) => csvRows.push(data))
-            .on('end', () => onResolve(csvRows));
+            .pipe(parse({ delimiter: ",", from_line: 2 }))
+            .on("data", (data) => csvRows.push(data))
+            .on("end", () => onResolve(csvRows));
         } else {
           return onResolve(csvRows);
         }
       } catch (err) {
-        console.log('Error in reading file path :: ', csvFilePath, err);
+        console.log("Error in reading file path :: ", csvFilePath, err);
 
         return onResolve(csvRows);
       }
     });
   }
 
-    // async processFromDb() {
+  formatNumber(args) {
+    const oThis = this;
+
+    const number = args.number;
+    const decimal = args.decimal || 18;
+    const value = new BigNumber(number)
+      .dividedBy(new BigNumber(10).pow(decimal))
+      .toString();
+
+    let parts = value.split(".");
+    parts[0] = Number(parts[0]).toLocaleString("en-US");
+    return parts.join(".");
+  }
+
+  // async processFromDb() {
   //   const oThis = this;
   //   console.log("Start Perform");
 
@@ -354,14 +426,14 @@ class ConstructSummary {
   //     if (transactionDetails.length == 0) {
   //       break;
   //     }
-  
+
   //     for (let txDetail of transactionDetails) {
   //       console.log("txDetail.transactionHash: ", txDetail.transactionHash);
 
   //       const summary = oThis.constructSummary(txDetail , template);
   //       if (summary.type) {
   //         oThis.setAllCounts(summary, summary.kind);
-  //       } 
+  //       }
   //     }
   //     offset = offset + limit;
 
