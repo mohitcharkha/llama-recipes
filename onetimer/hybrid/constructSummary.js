@@ -15,6 +15,8 @@ const fs = require("fs"),
   parse = require("csv-parse");
 
 const rootPrefix = "../..",
+  transactionDetailsConstants = require(rootPrefix +
+    "/lib/globalConstant/transactionDetails"),  
   TransactionDetailModel = require(rootPrefix +
     "/app/models/mysql/main/TransactionsDetails");
 
@@ -31,10 +33,39 @@ class ConstructSummary {
   async perform() {
     const oThis = this;
 
-    await oThis.processFromCsv();
+    // await oThis.processFromCsv();
+
+    await oThis.processFromDb();
 
     console.log("::RESPONSE:: ", oThis.response);
     console.log("::totalEvents:: ", totalEvents);
+  }
+
+  async processFromDb() {
+    const oThis = this;
+
+    let limit = 10000;
+    let offset = 0;
+
+    while (true) {
+
+      const txDetails = await oThis.fetchTransactionDetailObj(limit, offset);
+
+      if (txDetails.length == 0) {
+        break;
+      }
+
+      totalEvents = totalEvents + txDetails.length;
+
+      for (let txDetail of txDetails) {
+        const summary = oThis.constructSummary(txDetail, oThis.getTemplate(oThis.eventType));
+        if (summary.type) {
+          oThis.setAllCounts(summary, summary.kind);
+        }
+      }
+
+      offset = offset + limit;
+    }
   }
 
   async processFromCsv() {
@@ -243,8 +274,8 @@ class ConstructSummary {
     }
 
 
-    const subKind = ""
-    // const subKind = oThis.processFailedReasonsSwap(txDetail);
+    // const subKind = ""
+    const subKind = oThis.processFailedReasonsSwap(txDetail);
     // const subKind = oThis.processFailedReasonsTransfer(txDetail);
 
     if (formattedTextArr == null || formattedTextArr.length == 0) {
@@ -363,14 +394,12 @@ class ConstructSummary {
       .select("*")
       // .where('highlighted_event_texts is not null')
       .where("transaction_hash is not null")
-      .where([
-        'transaction_hash = "0x5b81d74943d4529bd5d64d81cf48b008ea302f2dfbff633af45697dd062d2d9d"',
-      ])
-      // .where('total_events = 0 ')
-      // .where('total_events = 1')
-      // .where('JSON_EXTRACT(data, "$.raw_input") = "0x"')
-      // .where("SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(highlighted_event_texts, '$[0]')), ' ', 1) = 'Revoked'")
-      .limit(1)
+      .where(["status = ?", 
+           transactionDetailsConstants.successStatus])
+      .where(["highlighted_event_status = ?", 
+          transactionDetailsConstants.successHighlightedEventStatus])
+      .where("SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(highlighted_event_texts, '$[0]')), ' ', 1) = " + "'Swap'")
+      .limit(limit)
       .offset(offset)
       .fire();
 
@@ -520,7 +549,7 @@ class ConstructSummary {
               decimalNull = true;
             }
             swapDetail.outgoingDecimal = decimal;
-            swapDetail.outgoingAmount = oThis.formatNumber(swapDetail.outgoingAmount , decimal);
+            swapDetail.outgoingAmount = oThis.formatNumbers(swapDetail.outgoingAmount , decimal);
           }
           if (!swapDetail.incomingAddress && tokenTransferToAddress == swapContractAddress) {
             swapDetail.incomingAddress = tokenTransferObj.token.address;
@@ -529,7 +558,7 @@ class ConstructSummary {
             if (decimal == null) {
               decimalNull = true;
             }
-            swapDetail.incomingAmount = oThis.formatNumber(swapDetail.incomingAmount , decimal);
+            swapDetail.incomingAmount = oThis.formatNumbers(swapDetail.incomingAmount , decimal);
           }
         }   
       }
@@ -537,12 +566,12 @@ class ConstructSummary {
 
       if (i != 0 && !swapDetail.incomingAddress) {
         swapDetail.incomingAddress = formattedSwapDetailsArray[i-1].outgoingAddress;
-        swapDetail.incomingAmount = oThis.formatNumber(swapDetail.incomingAmount ,  formattedSwapDetailsArray[i-1].outgoingDecimal);
+        swapDetail.incomingAmount = oThis.formatNumbers(swapDetail.incomingAmount ,  formattedSwapDetailsArray[i-1].outgoingDecimal);
       } 
 
       if (i == (swapDetailsArray.length - 1) && !swapDetail.outgoingAddress) {
         swapDetail.outgoingAddress = "Ether"
-        swapDetail.outgoingAmount = oThis.formatNumber(swapDetail.outgoingAmount,  18);
+        swapDetail.outgoingAmount = oThis.formatNumbers(swapDetail.outgoingAmount,  18);
       }
 
       formattedSwapDetailsArray.push(swapDetail);
@@ -592,6 +621,31 @@ class ConstructSummary {
     }
 
     return swapDetails;
+  }
+
+  formatNumbers(number, decimal) {
+    const oThis = this;
+
+    if (decimal == 0) {
+      return oThis.addCommas(number);
+    }
+    decimal = decimal || 18;
+
+    let value =  new BigNumber(number)
+      .dividedBy(new BigNumber(10).pow(decimal))
+      .toString(10);
+    
+    if (value.startsWith("-")) {
+      value = value.replace("-", "");
+    }
+
+    return oThis.addCommas(value);
+  }
+
+  addCommas(value) {
+    let parts = value.split(".");
+    parts[0] = parts[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
   }
 
   assignBiggerValue(amount0In, amount1In) {
