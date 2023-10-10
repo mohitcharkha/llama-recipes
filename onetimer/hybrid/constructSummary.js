@@ -25,7 +25,7 @@ class ConstructSummary {
     oThis.response = {};
     oThis.BigNumber = BigNumber;
 
-    oThis.eventType = "Transfer";
+    oThis.eventType = "Approved";
   }
 
   async perform() {
@@ -81,7 +81,10 @@ class ConstructSummary {
         break;
       }
       const modelOutput = csvRow[2];
-      if (modelOutput == oThis.eventType) {
+      // if (modelOutput == oThis.eventType) {
+      //   transactionHashArr.push(csvRow[0]);
+      // }
+      if (modelOutput == "Revoked" && csvRow[1] == 'Approved') {
         transactionHashArr.push(csvRow[0]);
       }
     }
@@ -89,6 +92,8 @@ class ConstructSummary {
     if (transactionHashArr.length == 0) {
       return null;
     }
+
+    console.log("Length===",transactionHashArr.length)
 
     return oThis.fetchTransactionDetailObjForTxHashes(transactionHashArr);
   }
@@ -238,9 +243,9 @@ class ConstructSummary {
     }
 
 
-    // const subKind = ""
+    const subKind = ""
     // const subKind = oThis.processFailedReasonsSwap(txDetail);
-    const subKind = oThis.processFailedReasonsTransfer(txDetail);
+    // const subKind = oThis.processFailedReasonsTransfer(txDetail);
 
     if (formattedTextArr == null || formattedTextArr.length == 0) {
       console.log("template_did_not_generate_any_summary: ", kind);
@@ -267,7 +272,7 @@ class ConstructSummary {
             .toUpperCase()
             .includes(
               "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toUpperCase()
-            )
+            ) && (oThis.eventType != 'Revoked' && oThis.eventType != 'Approved' )
         ) {
           formattedText = formattedText
             .toUpperCase()
@@ -278,7 +283,10 @@ class ConstructSummary {
         }
 
         if (highlightedEventText.toUpperCase() != formattedText.toUpperCase()) {
-          isAllEqual = false;
+         
+          console.log("highlightedEventText.toUpperCase()", highlightedEventText.toUpperCase())
+          console.log("formattedText.toUpperCase()", formattedText.toUpperCase())
+           isAllEqual = false;
           break;
         }
       }
@@ -442,8 +450,9 @@ class ConstructSummary {
       return 'withdraw'
     }
 
-    if (txDetail.data.token_transfers.length > 0 && txDetail.data.token_transfers[0].token.type == "ERC-721"){
-      return "Erc-721"
+    if (txDetail.data.token_transfers.length > 0 && 
+      (txDetail.data.token_transfers[0].token.type == "ERC-721" || txDetail.data.token_transfers[0].token.type == "ERC-1155")){
+      return "NFT"
     }
 
     return "unknown"
