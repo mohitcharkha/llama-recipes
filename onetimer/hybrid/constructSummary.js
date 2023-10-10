@@ -59,9 +59,7 @@ class ConstructSummary {
       totalEvents = totalEvents + txDetails.length;
 
       for (let txDetail of txDetails) {
-        console.log("txDetail.transactionHash: ", txDetail.transactionHash);
-
-        const template = oThis.getTemplate(oThis.eventType);
+        // console.log("txDetail.transactionHash: ", txDetail.transactionHash);
         const summary = oThis.constructSummary(txDetail, template);
         if (summary.type) {
           oThis.setAllCounts(summary, summary.kind);
@@ -170,7 +168,7 @@ class ConstructSummary {
         }
         variablesMap[variable] = variableValue;
       }
-      console.log("variablesMap: ", variablesMap);
+      // console.log("variablesMap: ", variablesMap);
 
       let message = template.message;
       for (let variable in variablesMap) {
@@ -180,6 +178,7 @@ class ConstructSummary {
     }
 
     return oThis.checkIfEqual(
+      txDetail,
       txDetail.highlightedEventTexts,
       formattedTextArr,
       template.type
@@ -196,26 +195,60 @@ class ConstructSummary {
     };
   }
 
-  checkIfEqual(highlightedEventTexts, formattedTextArr, kind) {
+  fetchActionType(highlightedEventTexts) {
     const oThis = this;
 
-    // console.log("highlightedEventTexts:: ", highlightedEventTexts);
-    // console.log("formattedTextArr:: ", formattedTextArr);
-
-    if (highlightedEventTexts == null || highlightedEventTexts.length == 0) {
-      console.log("etherscan_does_not_have_any_text: ", kind);
-      return {
-        kind: kind,
-        type: "etherscan_does_not_have_any_text",
-      };
+    if (!highlightedEventTexts || highlightedEventTexts.length == 0) {
+      return "";
     }
+
+    const firstWord = highlightedEventTexts[0].split(" ")[0];
+    return firstWord;
+  }
+
+
+
+  getMethodName(event) {
+    const methodCall = event && event.decoded && event.decoded.method_call;
+    return methodCall && methodCall.split("(")[0];
+  }
+
+  checkIfEqual(txDetail, highlightedEventTexts, formattedTextArr, kind) {
+    const oThis = this;
+
+    const firstWord = oThis.fetchActionType(highlightedEventTexts)
+    // console.log("firstWord=", firstWord);
+    // console.log("highlightedEventTexts=", highlightedEventTexts);
+
+    const isSameActionINEtherscan = firstWord == oThis.eventType;
+    const isSameActionInTemplate = formattedTextArr.length > 0;
+
+    if (isSameActionINEtherscan){
+      if (isSameActionInTemplate){
+          kind = "same_action_in_etherscan_and_script"
+      } else{
+          kind = "same_action_in_etherscan_but_not_script"
+      }
+    }else {
+      if (isSameActionInTemplate){
+        kind = "same_action_in_script_but_not_etherscan"
+      } else{
+        kind = "different_action_in_etherscan_and_script"
+      }
+    }
+
+
+    // const subKind = ""
+    // const subKind = oThis.processFailedReasonsSwap(txDetail);
+    const subKind = oThis.processFailedReasonsTransfer(txDetail);
 
     if (formattedTextArr == null || formattedTextArr.length == 0) {
       console.log("template_did_not_generate_any_summary: ", kind);
       return {
         kind: kind,
-        type: "template_did_not_generate_any_summary",
-      };
+        subKind: subKind,
+        type: "template_did_not_generate_any_summary"
+      }
     }
 
     let isAllEqual = true;
@@ -253,44 +286,37 @@ class ConstructSummary {
       if (isAllEqual) {
         return {
           kind: kind,
+          subKind: subKind,
           type: "exact_match",
         };
       }
     }
 
-    let sameActionDifferentLanguage = false;
-    if (
-      formattedTextArr[0] &&
-      highlightedEventTexts[0] &&
-      formattedTextArr[0].split(" ")[0].toUpperCase() ==
-        highlightedEventTexts[0].split(" ")[0].toUpperCase()
-    ) {
-      sameActionDifferentLanguage = true;
+    if(kind == 'same_action_in_etherscan_and_script' && subKind == 'unknown'){
+      console.log("===same_action_in_etherscan_and_script:incorrect_match==")
+      console.log("highlightedEventTexts",highlightedEventTexts)
+      console.log("formattedTextArr",formattedTextArr)
+      console.log("txDetail.transactionHash: ", txDetail.transactionHash);
     }
 
-    if (sameActionDifferentLanguage) {
-      console.log("same_action_different_language: ", kind);
-      return {
-        kind: kind,
-        type: "same_action_different_language",
-      };
-    } else {
-      console.log("etherscan_does_not_classify_as_given_action: ", kind);
-
-      return {
-        kind: kind,
-        type: "etherscan_does_not_classify_as_given_action",
-      };
+    return {
+      kind: kind,
+      subKind: subKind,
+      type: "incorrect_match"
     }
+
   }
 
   setAllCounts(summary, actionName) {
     const oThis = this;
 
     oThis.response[actionName] = oThis.response[actionName] || {};
-    oThis.response[actionName][summary.type] =
-      oThis.response[actionName][summary.type] || 0;
-    oThis.response[actionName][summary.type]++;
+    oThis.response[actionName][summary.type] = oThis.response[actionName][summary.type] || {};
+    
+    
+    oThis.response[actionName][summary.type][summary.subKind] =
+      oThis.response[actionName][summary.type][summary.subKind] || 0;
+    oThis.response[actionName][summary.type][summary.subKind]++;
   }
 
   getActualValue(trigger, txDetail) {
@@ -408,40 +434,53 @@ class ConstructSummary {
     return parts.join(".");
   }
 
-  // async processFromDb() {
-  //   const oThis = this;
-  //   console.log("Start Perform");
+  processFailedReasonsTransfer(txDetail) {
+    const oThis = this;    
+    
+    const firstWord = oThis.fetchActionType(txDetail.highlightedEventTexts)
+    if (firstWord == 'Withdraw'){
+      return 'withdraw'
+    }
 
-  //   let limit = 100;
-  //   let offset = 0;
+    if (txDetail.data.token_transfers.length > 0 && txDetail.data.token_transfers[0].token.type == "ERC-721"){
+      return "Erc-721"
+    }
 
-  //   const template = oThis.getTemplate(oThis.eventType);
+    return "unknown"
+  }
 
-  //   while (true) {
-  //     console.log("Current offset: ", offset);
-  //     let transactionDetails = await oThis.fetchTransactionDetailObj(
-  //       limit,
-  //       offset
-  //     );
-  //     if (transactionDetails.length == 0) {
-  //       break;
-  //     }
 
-  //     for (let txDetail of transactionDetails) {
-  //       console.log("txDetail.transactionHash: ", txDetail.transactionHash);
+  processFailedReasonsSwap(txDetail) {
+    const oThis = this;
 
-  //       const summary = oThis.constructSummary(txDetail , template);
-  //       if (summary.type) {
-  //         oThis.setAllCounts(summary, summary.kind);
-  //       }
-  //     }
-  //     offset = offset + limit;
+    let swapEvents = oThis.getSwapEvents(txDetail);
+    console.log("swapEvents: ", swapEvents);
 
-  //     if (offset > 1) {
-  //       break;
-  //     }
-  //   }
-  // }
+    if (swapEvents.length == 0) {
+      return "no-decoded-swap-event";
+    }
+
+    return "unknown"
+  }
+
+  getSwapEvents(formattedTxDetail) {
+    const oThis = this,
+      swapEvents = [];
+
+    for (let eventLog of formattedTxDetail.logsData["items"]) {
+      if (oThis.isSwapEvent(eventLog)) {
+        swapEvents.push(eventLog);
+      }
+    }
+
+    return swapEvents;
+  }
+
+  isSwapEvent(event) {
+    const oThis = this;
+
+    return oThis.getMethodName(event) === "Swap";
+  }
 }
 
 const constructSummary = new ConstructSummary();
