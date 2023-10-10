@@ -45,6 +45,7 @@ class ConstructSummary {
     console.log("csvRows: ", csvRows.length);
 
     let page = 1;
+    const template = oThis.getTemplate(oThis.eventType);
     while(true) {
       console.log("Current page: ", page);
       const txDetails = await oThis.getTxDetailsForCsvRows(csvRows, page);
@@ -75,8 +76,8 @@ class ConstructSummary {
     const oThis = this;
 
     let transactionHashArr = [];
-    let start = (page - 1) * 1000;
-    for(let i = start; i < start + 1000; i++) {
+    let start = (page - 1) * 10000;
+    for(let i = start; i < start + 10000; i++) {
       let csvRow = csvRows[i];
       if (!csvRow) {
         break;
@@ -110,6 +111,8 @@ class ConstructSummary {
       const functionDefinition = preprocessedVariables.function.value;
       const dynamicFunction =  new Function(functionArguments, functionDefinition);
       preprocessedVariablesValues = dynamicFunction(args);
+
+      // preprocessedVariablesValues = oThis.getSwapDetails(args);
       
       // console.log("preprocessedVariablesValues::: ", preprocessedVariablesValues);
     }
@@ -131,23 +134,6 @@ class ConstructSummary {
     const formattedTextArr = dynamicFunction(args);
 
     return oThis.checkIfEqual(txDetail.highlightedEventTexts, formattedTextArr, template.type);
-  }
-
-  constructSwapSummary(args) {
-    const preprocessedVariables = args.preprocessedVariables;
-    const template = args.template;
-    const formattedTextArr = [];
-
-    for (let item of preprocessedVariables) {      
-      let message = template.message.text;
-      for (let variable of template.variables) {
-        let variable2 = '{' + variable + '}';
-        message = message.replace(variable2, item[variable]);
-      }
-      formattedTextArr.push(message);
-    }
-
-    return formattedTextArr;
   }
 
   returnResult() {
