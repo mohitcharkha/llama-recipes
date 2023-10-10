@@ -25,7 +25,7 @@ class ConstructSummary {
     oThis.response = {};
     oThis.BigNumber = BigNumber;
 
-    oThis.eventType = "Approved";
+    oThis.eventType = "Swap";
   }
 
   async perform() {
@@ -81,12 +81,12 @@ class ConstructSummary {
         break;
       }
       const modelOutput = csvRow[2];
-      // if (modelOutput == oThis.eventType) {
-      //   transactionHashArr.push(csvRow[0]);
-      // }
-      if (modelOutput == "Revoked" && csvRow[1] == 'Approved') {
+      if (modelOutput == oThis.eventType) {
         transactionHashArr.push(csvRow[0]);
       }
+      // if (modelOutput == "Revoked" && csvRow[1] == 'Approved') {
+      //   transactionHashArr.push(csvRow[0]);
+      // }
     }
 
     if (transactionHashArr.length == 0) {
@@ -463,10 +463,11 @@ class ConstructSummary {
     const oThis = this;
 
     let swapEvents = oThis.getSwapEvents(txDetail);
-    console.log("swapEvents: ", swapEvents);
 
     if (swapEvents.length == 0) {
       return "no-decoded-swap-event";
+    } else if (oThis.isNullPresentInSwapEvents(swapEvents, txDetail)) {
+      return "decimal-null-present";
     }
 
     return "unknown"
@@ -489,6 +490,116 @@ class ConstructSummary {
     const oThis = this;
 
     return oThis.getMethodName(event) === "Swap";
+  }
+
+  isNullPresentInSwapEvents(swapEvents, txDetail) {
+    const oThis = this;
+    const swapDetailsArray = oThis.getSwapDetails(swapEvents);
+    const data = txDetail.data;
+    const tokenTransfers = data.token_transfers;
+
+    const formattedSwapDetailsArray = [];
+    
+    let decimalNull = false;
+    for (let i = 0; i < swapDetailsArray.length; i++) {
+      const swapDetail = swapDetailsArray[i];
+      const swapContractAddress = swapDetail.swapContractAddress.toLowerCase();
+      const currentSwapIndex = swapDetail.index;
+      const previousSwapIndex = i > 0 ? swapDetailsArray[i - 1].index : 0;
+
+      for (let tokenTransferObj of tokenTransfers) {
+        const tokenTransferFromAddress = tokenTransferObj.from.hash.toLowerCase();
+        const tokenTransferToAddress = tokenTransferObj.to.hash.toLowerCase();
+        const tokenTransferLogIndex = tokenTransferObj.log_index;
+
+        if(tokenTransferLogIndex < currentSwapIndex && tokenTransferLogIndex >= previousSwapIndex) {
+          if (!swapDetail.outgoingAddress && tokenTransferFromAddress == swapContractAddress) {
+            swapDetail.outgoingAddress = tokenTransferObj.token.address;
+            const decimal = tokenTransferObj.total.decimals;
+            if (decimal == null) {
+              decimalNull = true;
+            }
+            swapDetail.outgoingDecimal = decimal;
+            swapDetail.outgoingAmount = oThis.formatNumber(swapDetail.outgoingAmount , decimal);
+          }
+          if (!swapDetail.incomingAddress && tokenTransferToAddress == swapContractAddress) {
+            swapDetail.incomingAddress = tokenTransferObj.token.address;
+            const decimal = tokenTransferObj.total.decimals;
+            swapDetail.incomingDecimal = decimal;
+            if (decimal == null) {
+              decimalNull = true;
+            }
+            swapDetail.incomingAmount = oThis.formatNumber(swapDetail.incomingAmount , decimal);
+          }
+        }   
+      }
+
+
+      if (i != 0 && !swapDetail.incomingAddress) {
+        swapDetail.incomingAddress = formattedSwapDetailsArray[i-1].outgoingAddress;
+        swapDetail.incomingAmount = oThis.formatNumber(swapDetail.incomingAmount ,  formattedSwapDetailsArray[i-1].outgoingDecimal);
+      } 
+
+      if (i == (swapDetailsArray.length - 1) && !swapDetail.outgoingAddress) {
+        swapDetail.outgoingAddress = "Ether"
+        swapDetail.outgoingAmount = oThis.formatNumber(swapDetail.outgoingAmount,  18);
+      }
+
+      formattedSwapDetailsArray.push(swapDetail);
+    }
+
+    if (decimalNull) {
+      return true;
+    }
+
+    return false;
+  }
+
+  getSwapDetails(swapEvents) {
+    const oThis = this;
+
+    const swapDetails = [];
+    for (let event of swapEvents) {
+      const parameters = event.decoded.parameters;
+      const methodId = event.decoded.method_id;
+      const logIndex = event.index;
+
+      const paramsNameToValueMap = {};
+      for (let param of parameters) {
+        if (!paramsNameToValueMap[param.name]) {
+          paramsNameToValueMap[param.name] = param.value;
+        }
+      }
+      const swapDetail = {
+        swapContractAddress: event.address.hash,
+        index: logIndex
+      };
+
+      if (methodId == "d78ad95f") {
+        swapDetail.incomingAmount = oThis.assignBiggerValue( paramsNameToValueMap["amount0In"], paramsNameToValueMap["amount1In"]);
+        swapDetail.outgoingAmount = oThis.assignBiggerValue( paramsNameToValueMap["amount0Out"], paramsNameToValueMap["amount1Out"]);
+      } else {
+        if (paramsNameToValueMap["amount0"] < 0) {
+          swapDetail.outgoingAmount = paramsNameToValueMap["amount0"];
+          swapDetail.incomingAmount = paramsNameToValueMap["amount1"];
+        } else {
+          swapDetail.outgoingAmount = paramsNameToValueMap["amount1"];
+          swapDetail.incomingAmount = paramsNameToValueMap["amount0"];
+        }
+      }
+
+      swapDetails.push(swapDetail);
+    }
+
+    return swapDetails;
+  }
+
+  assignBiggerValue(amount0In, amount1In) {
+    const amount0 = BigInt(amount0In);
+    const amount1 = BigInt(amount1In);
+
+    // Assign bigger value
+    return amount0 >= amount1 ? amount0In : amount1In;
   }
 }
 
