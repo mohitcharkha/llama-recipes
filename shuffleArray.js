@@ -1,5 +1,5 @@
 fs = require("fs");
-a = require("./alpaca_data_inference_final.json");
+a = require("./inference_data_2640_nontrained.json");
 
 function shuffleArray(array) {
   for (var i = array.length - 1; i > 0; i--) {
@@ -23,4 +23,7 @@ shuffleArray(a);
 //     array = [];
 //   }
 // }
-fs.writeFileSync("alpaca_data_inference_final.json", JSON.stringify(a));
+fs.writeFileSync(
+  "inference_data_2640_nontrained_final.json",
+  JSON.stringify(a)
+);

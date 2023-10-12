@@ -3,6 +3,7 @@ a = require("../training_dataset_llama2_14k.json");
 b = [];
 c = {};
 const BigNumber = require("bignumber.js");
+hashes = require("../hashes_contentLength_2640.json");
 
 function convertToDecimal(value, decimal) {
   if (!value) {
@@ -46,7 +47,6 @@ function getMethodParameters(methodParameters){
   }
   return parameters;
 }
-
 
 async function main(){
   let count = 0;
@@ -118,10 +118,13 @@ async function main(){
     //   continue;
     // }
 
-    if(JSON.parse(a[i].output).length > 1){
-      console.log("skipping multi line outputs")
-      continue;
-    }
+    // if(JSON.parse(a[i].output).length > 1){
+    //   console.log("skipping multi line outputs")
+    //   continue;
+    // }
+    if(!hashes.includes(input.transactions.hash)){
+        continue
+      }
     b[count] = {};
 
     b[count].instruction = instruction;
@@ -141,25 +144,19 @@ async function main(){
     //   break;
     // }
   }
-  let typeCount = 300;
-  let maxPerTypeCount = 75;
+  let maxPerTypeCount = 4;
   let finalOutput = [];
+  let supportedTypes = ["Swap", "Approved", "Transfer", "Mint"]
   for (let type in c) {
-    if (c[type].length < typeCount) {
+    if (!supportedTypes.includes(type)) {
       console.log("skip " ,type, " ", c[type].length );
       continue;
     }
     console.log("add  " ,type, " ", c[type].length );
     finalOutput = finalOutput.concat(c[type].slice(0, maxPerTypeCount === 0 ? c[type].length : maxPerTypeCount));
   }
-  let transcationHashArray = [];
-  for(let i in finalOutput){
-    transcationHashArray.push(finalOutput[i].transactionHash);
-    delete finalOutput[i].transactionHash;
-  }
   console.log({skipCount, percent: skipCount/a.length * 100})
-  fs.writeFileSync("alpaca_data_contentLength_2640.json", JSON.stringify(finalOutput));
-  fs.writeFileSync("hashes_contentLength_2640.json", JSON.stringify(transcationHashArray));
+  fs.writeFileSync("inference_data_2640.json", JSON.stringify(finalOutput));
 }
 main().then(()=>{
   console.log("done");

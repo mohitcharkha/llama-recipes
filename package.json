@@ -23,8 +23,8 @@
     "lodash": "4.17.21",
     "moment-timezone": "0.5.33",
     "mysql": "2.18.1",
-    "openai": "^4.7.0",
     "node": "^20.6.0",
+    "openai": "^4.7.0",
     "qs": "^6.11.2",
     "sanitize-html": "2.3.2"
   },

@@ -95,7 +95,7 @@ for (i = 0; i < a.length; i++) {
   b[count] = {};
 
   b[count].instruction =
-    "You are an expert in Ethereum blockchain and can classify the transactions into their specific categories";
+    "You are an expert in Ethereum blockchain and can classify the transactions into their specific categories. In case you don't know the answer or can't find the proper classification say 'I don't know'";
 
   b[count].input = string_input.trim();
   let output = JSON.parse(a[i].output);

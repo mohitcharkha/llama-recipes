@@ -8,7 +8,11 @@ pip install --extra-index-url https://download.pytorch.org/whl/test/cu118 llama-
 
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
 apt-get install git-lfs
-git clone https://huggingface.co/meta-llama/Llama-2-7b-chat-hf
+cd workspace && git clone https://huggingface.co/meta-llama/Llama-2-7b-chat-hf
+
+# To clone CodeLLama Instruct Model
+
+cd workspace && git clone https://huggingface.co/codellama/CodeLlama-7b-Instruct-hf
 
 # HuggingFace credentials
 
@@ -42,7 +46,13 @@ cd workspace/llama_recipes
 
 ## Running the Fine Tunning Modal
 
-nohup python -m llama_recipes.finetuning --num_epochs 25 --use_peft --peft_method lora --quantization --dataset alpaca_dataset --save_model --model_name /workspace/Llama-2-7b-chat-hf --output_dir /workspace/Llama-2-7b-chat-hf-trained-50k &
+nohup python -m llama_recipes.finetuning --num_epochs 30 --use_peft --peft_method lora --quantization --dataset alpaca_dataset --save_model --model_name /workspace/Llama-2-7b-chat-hf --output_dir /workspace/Llama-2-7b-chat-hf-string-trained &
+
+# For Code Llama training
+
+nohup python -m llama_recipes.finetuning --num_epochs 1 --use_peft --peft_method lora --quantization --dataset alpaca_dataset --save_model --model_name /workspace/CodeLlama-7b-Instruct-hf --output_dir /workspace/CodeLlama-7b-Instruct-hf-trained &
+
+torchrun --nnodes 1 --nproc_per_node 2 examples/finetuning.py --num_epochs 1 --enable_fsdp --use_peft --peft_method lora --dataset alpaca_dataset --save_model --model_name /workspace/CodeLlama-7b-Instruct-hf --pure_bf16 --output_dir /workspace/CodeLlama-7b-Instruct-hf-trained --use_fast_kernels
 
 ## Running fine tuning for multi-gpu
 
@@ -54,6 +64,24 @@ python examples/chat_completion/chat_completion.py --model_name /workspace/Llama
 
 ## Running inference directly with inference file
 
-python examples/inference.py --model_name /workspace/Llama-2-7b-chat-hf --peft_model /workspace/Llama-2-7b-chat-hf-trained --prompt_file examples/chat_completion/llama_inference_data.json --quantization --max_new_tokens 2000
+python examples/inference.py --model_name /workspace/Llama-2-7b-chat-hf --peft_model /workspace/Llama-2-7b-chat-hf-trained --prompt_file examples/chat_completion/inference_data_2640_nontrained_final.json --quantization --max_new_tokens 250
 
-python examples/inference.py --model_name /workspace/Llama-2-7b-chat-hf --peft_model /workspace/Llama-2-7b-chat-hf-trained-50k --prompt_file examples/chat_completion/alpaca_inference_data_50k_200_words.json --quantization --max_new_tokens 50 --do_sample False
+python examples/inference.py --model_name /workspace/Llama-2-7b-chat-hf --peft_model /workspace/Llama-2-7b-chat-hf-json-trained --prompt_file examples/chat_completion/chats.json --quantization --max_new_tokens 500 --do_sample False
+
+python examples/inference.py --model_name /workspace/Llama-2-7b-chat-hf --prompt_file examples/chat_completion/alpaca_data_300.json --quantization --max_new_tokens 50
+
+====
+You can set this in your main training script as follows:
+
+```bash
+os.environ['PYTORCH_CUDA_ALLOC_CONF']='expandable_segments:True'
+```
+
+=====
+We also added this enviroment variable in `setup_environ_flags` of the [train_utils.py](../utils/train_utils.py), feel free to uncomment it if required.
+
+====
+
+the environment variable `TORCH_DISTRIBUTED_DEBUG` can be used to trigger additional useful logging and collective synchronization checks to ensure all ranks are synchronized appropriately. `TORCH_DISTRIBUTED_DEBUG` can be set to either OFF (default), INFO, or DETAIL depending on the debugging level required. Please note that the most verbose option, DETAIL may impact the application performance and thus should only be used when debugging issues.
+
+====
