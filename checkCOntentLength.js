@@ -1,4 +1,4 @@
-a = require("./alpaca_data_string.json");
+a = require("./inference_data_string_3900-4900_nontrained_30.json");
 async function main() {
   let max = 0;
   let llamaTokenizer = await import("./llama-tokenizer.js");
@@ -15,7 +15,6 @@ async function main() {
     if (contentLength > max) {
       max = contentLength;
     }
-    break;
   }
   console.log({ max });
 }
