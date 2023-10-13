@@ -1,6 +1,7 @@
 import json
 import aiohttp
 import asyncio
+import time
 
 class GetInference:
     def __init__(self):
@@ -13,14 +14,12 @@ class GetInference:
     async def read_json_file(self):
         try:
             # Todo: Replace the path with your actual JSON file path
-            json_file_path = "/Users/shraddha/Downloads/alpaca_data_inference_50k_final.json"
+            json_file_path = "/Users/amanbarbaria/Downloads/inference_eval_oslo_model.json"
 
             with open(json_file_path, 'r', encoding='utf-8') as file:
                 data = file.read()
                 self.json_data = json.loads(data)
-
-            # Now you can work with the JSON data
-            print(self.json_data)
+                self.json_data = self.json_data[:50]
 
         except Exception as error:
             print("Error:", error)
@@ -29,44 +28,51 @@ class GetInference:
         async with aiohttp.ClientSession() as session:
             stat_result = {"match": {}, "not_match": {}}
             tasks = []
-            index = 0
+            index = 0           
+            start = time.perf_counter()
             for json_row in self.json_data:
+                json_row=temp_row
                 prompt = self.create_prompt(json_row)
                 tasks.append(self.generate_inference(session, prompt, json_row))
                 index += 1
-                if(index == 10):
-                    break
 
             inference_responses = await asyncio.gather(*tasks)
-
-            for actual_output, json_row in inference_responses:
+            index = 0
+            e2e_inference_time = (time.perf_counter()-start)*1000
+            for actual_output in inference_responses:
+                actual_output = actual_output.split("### Response:")[1].strip()
+                actual_output = actual_output.split("\"")[0]
+                json_row = self.json_data[index]
+                index += 1
                 expected_output = json_row["output"]
                 if expected_output == actual_output:
                     stat_result["match"][expected_output] = stat_result["match"].get(expected_output, 0) + 1
                 else:
-                    print("==============Not Matched =======================")
+                    # print("==============Not Matched =======================")
                     stat_result["not_match"][expected_output] = stat_result["not_match"].get(expected_output, 0) + 1
-                print(f"stat_result: {stat_result}\n\n")
+                # print(f"stat_result: {stat_result}\n\n")
+            print(f"({e2e_inference_time} ms) FINAL stat_result: {stat_result}\n\n")
+
 
     def create_prompt(self, json_row):
-        prompt = f"{json_row['input']}\n\n### Response:"
-        print(prompt)
+        prompt = f"Instruction:\n{json_row['instruction']}\n\n### Input:\n{json_row['input']}\n\n### Response:"
         return prompt
 
-    async def generate_inference(self, session, prompt, json_row):
+    async def generate_inference(self, session, prompt, json_row):        
         # Todo: Replace the URL with your actual inference service URL
-        url = "https://example.com/generate"
+        url = "https://swpw4vvyh6kw0m-8000.proxy.runpod.net/generate"
         data = {'prompt': prompt, 'n': 1, 'temperature': 0}
         response_text = None
+        data = json.dumps(data)
 
         async with session.post(url, data=data) as response:
             if response.status == 200:
                 response_text = await response.text()
-                print(response_text)
+                # print("response_text",response_text)
             else:
                 print(f"Request failed with status code {response.status}")
 
-        return response_text.split("### Response:")[1].strip(), json_row
+        return response_text
 
 async def main():
     get_inference = GetInference()
