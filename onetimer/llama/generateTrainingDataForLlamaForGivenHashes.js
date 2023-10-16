@@ -27,39 +27,30 @@ class GenerateTrainingData {
     // Fetch all valid transactions
     console.log("Fetching all valid transactions....");
 
-    let limit = 100;
-    let offset = 0;
-
-    // Map of txn_type to count of transactions
-    let txnTypeToCountMap = {};
-
+    try {
+      const data =  "[";
+      writeFileSync(join(__dirname, "training_dataset_llama2.json"), data, {
+        flag: "a+",
+      });
+    } catch (error) {
+      console.error(error.message);
+    }
+    
     let transactionHashes = [];
+    let maxId = 0;
+    while(true){
+      console.log("maxId", maxId)
+  
 
       let fetchTransactionDetailObj = new TransactionDetailModel();
-      let transactionDetails = await fetchTransactionDetailObj.getLlamaTrainingData();
-
-      try {
-        const data =  "[";
-        writeFileSync(join(__dirname, "training_dataset_llama2.json"), data, {
-          flag: "a+",
-        });
-      } catch (error) {
-        console.error(error.message);
+      let transactionDetails = await fetchTransactionDetailObj.getLlamaTrainingData(maxId);
+      
+      if (transactionDetails.length == 0){
+        break;
       }
+
       for (let txDetail of transactionDetails) {
-        // Count of transactions for each txn_type
-        // if (txnTypeToCountMap[txDetail.txnType]) {
-        //   // check if count is less than limit
-        //   if (txnTypeToCountMap[txDetail.txnType] >= oThis.txnTypeLimit) {
-        //     continue;
-        //   }
-
-        //   txnTypeToCountMap[txDetail.txnType] =
-        //     txnTypeToCountMap[txDetail.txnType] + 1;
-        // } else {
-        //   txnTypeToCountMap[txDetail.txnType] = 1;
-        // }
-
+        maxId = txDetail.id
         transactionHashes.push(txDetail.data.hash);
 
         // Get training data detail
@@ -81,6 +72,7 @@ class GenerateTrainingData {
           console.error(error.message);
         }
       }
+    }
 
       try {
         const data =  "]";
@@ -90,15 +82,6 @@ class GenerateTrainingData {
       } catch (error) {
         console.error(error.message);
       }
-
-    console.log("txnTypeToCountMap: ", txnTypeToCountMap);
-
-    // Log total count of transactions
-    let totalCount = 0;
-    for (let txnType in txnTypeToCountMap) {
-      totalCount = totalCount + txnTypeToCountMap[txnType];
-    }
-    console.log("Total count of transactions: ", totalCount);
 
     // Write transaction hashes to file
     try {
@@ -126,6 +109,7 @@ class GenerateTrainingData {
         index: item.index,
         topics: item.topics,
         address: { hash: item.address.hash, name: item.address.name },
+        decoded: item.decoded
       });
     }
 
