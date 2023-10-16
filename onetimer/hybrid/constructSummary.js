@@ -1,0 +1,670 @@
+#!/usr/bin/env node
+
+/*
+ *
+ * Constructs summary using templates
+ *
+ * Usage: node onetimer/hybrid/constructSummary.js
+ *
+ */
+
+const lodash = require("lodash");
+const BigNumber = require("bignumber.js");
+
+const fs = require("fs"),
+  parse = require("csv-parse");
+
+const rootPrefix = "../..",
+  transactionDetailsConstants = require(rootPrefix +
+    "/lib/globalConstant/transactionDetails"),  
+  TransactionDetailModel = require(rootPrefix +
+    "/app/models/mysql/main/TransactionsDetails");
+
+let totalEvents = 0;
+class ConstructSummary {
+  constructor() {
+    const oThis = this;
+    oThis.response = {};
+    oThis.BigNumber = BigNumber;
+
+    oThis.eventType = "Swap";
+  }
+
+  async perform() {
+    const oThis = this;
+
+    // await oThis.processFromCsv();
+
+    await oThis.processFromDb();
+
+    console.log("::RESPONSE:: ", oThis.response);
+    console.log("::totalEvents:: ", totalEvents);
+  }
+
+  async processFromDb() {
+    const oThis = this;
+
+    let limit = 10000;
+    let offset = 0;
+
+    while (true) {
+
+      const txDetails = await oThis.fetchTransactionDetailObj(limit, offset);
+
+      if (txDetails.length == 0) {
+        break;
+      }
+
+      totalEvents = totalEvents + txDetails.length;
+
+      for (let txDetail of txDetails) {
+        const summary = oThis.constructSummary(txDetail, oThis.getTemplate(oThis.eventType));
+        if (summary.type) {
+          oThis.setAllCounts(summary, summary.kind);
+        }
+      }
+
+      offset = offset + limit;
+    }
+  }
+
+  async processFromCsv() {
+    const oThis = this;
+    console.log("Start Perform");
+
+    const csvFilePath = "./inference_50k.csv";
+    const csvRows = await oThis.readDataFromCsv(csvFilePath);
+    console.log("csvRows: ", csvRows.length);
+
+    let page = 1;
+    const template = oThis.getTemplate(oThis.eventType);
+    while (true) {
+      console.log("Current page: ", page);
+      const txDetails = await oThis.getTxDetailsForCsvRows(csvRows, page);
+
+      if (txDetails == null) {
+        break;
+      }
+
+      console.log("txDetails: ", txDetails.length);
+      totalEvents = totalEvents + txDetails.length;
+
+      for (let txDetail of txDetails) {
+        // console.log("txDetail.transactionHash: ", txDetail.transactionHash);
+        const summary = oThis.constructSummary(txDetail, template);
+        if (summary.type) {
+          oThis.setAllCounts(summary, summary.kind);
+        }
+      }
+
+      page++;
+    }
+  }
+
+  async getTxDetailsForCsvRows(csvRows, page) {
+    const oThis = this;
+
+    let transactionHashArr = [];
+    let start = (page - 1) * 10000;
+    for (let i = start; i < start + 10000; i++) {
+      let csvRow = csvRows[i];
+      if (!csvRow) {
+        break;
+      }
+      const modelOutput = csvRow[2];
+      if (modelOutput == oThis.eventType) {
+        transactionHashArr.push(csvRow[0]);
+      }
+      // if (modelOutput == "Revoked" && csvRow[1] == 'Approved') {
+      //   transactionHashArr.push(csvRow[0]);
+      // }
+    }
+
+    if (transactionHashArr.length == 0) {
+      return null;
+    }
+
+    console.log("Length===",transactionHashArr.length)
+
+    return oThis.fetchTransactionDetailObjForTxHashes(transactionHashArr);
+  }
+
+  constructSummary(txDetail, template) {
+    const oThis = this;
+
+    let preprocessedVariablesValues = null;
+    if (template.preprocessed_variables) {
+      const preprocessedVariables = template.preprocessed_variables;
+      const args = {};
+      for (let arg of preprocessedVariables.function.args) {
+        args[arg.name] = oThis.getActualValue(arg, txDetail);
+      }
+
+      const functionArguments = "args";
+      const functionDefinition = preprocessedVariables.function.value;
+      const dynamicFunction = new Function(
+        functionArguments,
+        functionDefinition
+      );
+      preprocessedVariablesValues = dynamicFunction(args);
+
+      // preprocessedVariablesValues = oThis.getSwapDetails(args);
+
+      // console.log("preprocessedVariablesValues::: ", preprocessedVariablesValues);
+    }
+
+    return oThis.generateSummary(
+      txDetail,
+      template,
+      preprocessedVariablesValues
+    );
+  }
+
+  generateSummary(txDetail, template, preprocessedVariablesValue) {
+    const oThis = this;
+
+    let formattedTextArr = [];
+    const variablesMap = {};
+
+    if (template.message.function) {
+      const args = {
+        template: template,
+        preprocessedVariables: preprocessedVariablesValue,
+      };
+
+      const functionArguments = "args";
+      const functionDefinition = template.message.function.value;
+      const dynamicFunction = new Function(
+        functionArguments,
+        functionDefinition
+      );
+      formattedTextArr = dynamicFunction(args);
+    } else {
+      for (let variable in template.variables) {
+        const variableData = template.variables[variable];
+        let dataPoint =
+          variableData.data_point == "data"
+            ? txDetail.data
+            : txDetail.tempLogsData;
+
+        let variableValue = null;
+        if (variableData.function) {
+          const args = {};
+          for (let arg of variableData.function.args) {
+            args[arg.name] = lodash.get(dataPoint, arg.path);
+          }
+
+          variableValue = oThis[variableData.function.name](args);
+        } else {
+          if (variableData.data_point == "preprocessed_variables") {
+            variableValue = preprocessedVariablesValue[variableData.path];
+          } else {
+            variableValue = lodash.get(dataPoint, variableData.path);
+          }
+        }
+        variablesMap[variable] = variableValue;
+      }
+      // console.log("variablesMap: ", variablesMap);
+
+      let message = template.message;
+      for (let variable in variablesMap) {
+        message = message.replace(`{${variable}}`, variablesMap[variable]);
+      }
+      formattedTextArr.push(message);
+    }
+
+    return oThis.checkIfEqual(
+      txDetail,
+      txDetail.highlightedEventTexts,
+      formattedTextArr,
+      template.type
+    );
+  }
+
+  returnResult() {
+    const oThis = this;
+
+    return {
+      did_not_match: true,
+      kind: "",
+      type: null,
+    };
+  }
+
+  fetchActionType(highlightedEventTexts) {
+    const oThis = this;
+
+    if (!highlightedEventTexts || highlightedEventTexts.length == 0) {
+      return "";
+    }
+
+    const firstWord = highlightedEventTexts[0].split(" ")[0];
+    return firstWord;
+  }
+
+
+
+  getMethodName(event) {
+    const methodCall = event && event.decoded && event.decoded.method_call;
+    return methodCall && methodCall.split("(")[0];
+  }
+
+  checkIfEqual(txDetail, highlightedEventTexts, formattedTextArr, kind) {
+    const oThis = this;
+
+    const firstWord = oThis.fetchActionType(highlightedEventTexts)
+    // console.log("firstWord=", firstWord);
+    // console.log("highlightedEventTexts=", highlightedEventTexts);
+
+    const isSameActionINEtherscan = firstWord == oThis.eventType;
+    const isSameActionInTemplate = formattedTextArr.length > 0;
+
+    if (isSameActionINEtherscan){
+      if (isSameActionInTemplate){
+          kind = "same_action_in_etherscan_and_script"
+      } else{
+          kind = "same_action_in_etherscan_but_not_script"
+      }
+    }else {
+      if (isSameActionInTemplate){
+        kind = "same_action_in_script_but_not_etherscan"
+      } else{
+        kind = "different_action_in_etherscan_and_script"
+      }
+    }
+
+
+    // const subKind = ""
+    const subKind = oThis.processFailedReasonsSwap(txDetail);
+    // const subKind = oThis.processFailedReasonsTransfer(txDetail);
+
+    if (formattedTextArr == null || formattedTextArr.length == 0) {
+      console.log("template_did_not_generate_any_summary: ", kind);
+      return {
+        kind: kind,
+        subKind: subKind,
+        type: "template_did_not_generate_any_summary"
+      }
+    }
+
+    let isAllEqual = true;
+    if (highlightedEventTexts.length == formattedTextArr.length) {
+      for (let i = 0; i < highlightedEventTexts.length; i++) {
+        let highlightedEventText = highlightedEventTexts[i];
+        if (highlightedEventText.split(" ")[0].toUpperCase() == "SWAP") {
+          highlightedEventText = highlightedEventText
+            .split(" On")[0]
+            .toUpperCase();
+        }
+        let formattedText = formattedTextArr[i];
+
+        if (
+          formattedText
+            .toUpperCase()
+            .includes(
+              "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toUpperCase()
+            ) && (oThis.eventType != 'Revoked' && oThis.eventType != 'Approved' )
+        ) {
+          formattedText = formattedText
+            .toUpperCase()
+            .replace(
+              "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toUpperCase(),
+              "Ether"
+            );
+        }
+
+        if (highlightedEventText.toUpperCase() != formattedText.toUpperCase()) {
+         
+          console.log("highlightedEventText.toUpperCase()", highlightedEventText.toUpperCase())
+          console.log("formattedText.toUpperCase()", formattedText.toUpperCase())
+           isAllEqual = false;
+          break;
+        }
+      }
+
+      if (isAllEqual) {
+        return {
+          kind: kind,
+          subKind: subKind,
+          type: "exact_match",
+        };
+      }
+    }
+
+    if(kind == 'same_action_in_etherscan_and_script' && subKind == 'unknown'){
+      console.log("===same_action_in_etherscan_and_script:incorrect_match==")
+      console.log("highlightedEventTexts",highlightedEventTexts)
+      console.log("formattedTextArr",formattedTextArr)
+      console.log("txDetail.transactionHash: ", txDetail.transactionHash);
+    }
+
+    return {
+      kind: kind,
+      subKind: subKind,
+      type: "incorrect_match"
+    }
+
+  }
+
+  setAllCounts(summary, actionName) {
+    const oThis = this;
+
+    oThis.response[actionName] = oThis.response[actionName] || {};
+    oThis.response[actionName][summary.type] = oThis.response[actionName][summary.type] || {};
+    
+    
+    oThis.response[actionName][summary.type][summary.subKind] =
+      oThis.response[actionName][summary.type][summary.subKind] || 0;
+    oThis.response[actionName][summary.type][summary.subKind]++;
+  }
+
+  getActualValue(trigger, txDetail) {
+    const oThis = this;
+    let events = txDetail.logsData;
+    let data = txDetail.data;
+
+    if (trigger.data_point == "library") {
+      return oThis[trigger.name];
+    }
+    const dataPoint = trigger.data_point == "data" ? data : events;
+
+    return lodash.get(dataPoint, trigger.path);
+  }
+
+  // This function will return template for given event type
+  getTemplate(eventType) {
+    const oThis = this;
+    let templatesMap = {};
+
+    const fs = require("fs");
+    const path = require("path");
+    const directoryPath = path.join(__dirname, "../../lib/templates");
+
+    fs.readdirSync(directoryPath).forEach(function(file) {
+      let templateJson = require("../../lib/templates/" + file);
+      templatesMap[templateJson.type] = templateJson;
+    });
+
+    return templatesMap[eventType];
+  }
+
+  async fetchTransactionDetailObj(limit, offset) {
+    let fetchTransactionDetailObj = new TransactionDetailModel();
+    let transactionDetails = await fetchTransactionDetailObj
+      .select("*")
+      // .where('highlighted_event_texts is not null')
+      .where("transaction_hash is not null")
+      .where(["status = ?", 
+           transactionDetailsConstants.successStatus])
+      .where(["highlighted_event_status = ?", 
+          transactionDetailsConstants.successHighlightedEventStatus])
+      .where("SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(highlighted_event_texts, '$[0]')), ' ', 1) = " + "'Swap'")
+      .limit(limit)
+      .offset(offset)
+      .fire();
+
+    console.log("transactionDetails", transactionDetails.length);
+
+    let formattedTransactionDetails = [];
+
+    for (let txDetail of transactionDetails) {
+      formattedTransactionDetails.push(
+        new TransactionDetailModel().formatDbData(txDetail)
+      );
+    }
+
+    return formattedTransactionDetails;
+  }
+
+  async fetchTransactionDetailObjForTxHashes(transactionHashArr) {
+    let fetchTransactionDetailObj = new TransactionDetailModel();
+    let transactionDetails = await fetchTransactionDetailObj
+      .select("*")
+      .where(["transaction_hash IN (?)", transactionHashArr])
+      .fire();
+
+    console.log("transactionDetails::", transactionDetails.length);
+
+    let formattedTransactionDetails = [];
+
+    for (let txDetail of transactionDetails) {
+      formattedTransactionDetails.push(
+        new TransactionDetailModel().formatDbData(txDetail)
+      );
+    }
+
+    return formattedTransactionDetails;
+  }
+
+  async readDataFromCsv(csvFilePath) {
+    const csvRows = [];
+
+    return new Promise(function(onResolve) {
+      try {
+        if (fs.existsSync(`${csvFilePath}`)) {
+          fs.createReadStream(`${csvFilePath}`)
+            .pipe(parse({ delimiter: ",", from_line: 2 }))
+            .on("data", (data) => csvRows.push(data))
+            .on("end", () => onResolve(csvRows));
+        } else {
+          return onResolve(csvRows);
+        }
+      } catch (err) {
+        console.log("Error in reading file path :: ", csvFilePath, err);
+
+        return onResolve(csvRows);
+      }
+    });
+  }
+
+  formatNumber(args) {
+    const oThis = this;
+
+    const number = args.number;
+    const decimal = args.decimal || 18;
+    const value = new BigNumber(number)
+      .dividedBy(new BigNumber(10).pow(decimal))
+      .toString();
+
+    let parts = value.split(".");
+    parts[0] = Number(parts[0]).toLocaleString("en-US");
+    return parts.join(".");
+  }
+
+  processFailedReasonsTransfer(txDetail) {
+    const oThis = this;    
+    
+    const firstWord = oThis.fetchActionType(txDetail.highlightedEventTexts)
+    if (firstWord == 'Withdraw'){
+      return 'withdraw'
+    }
+
+    if (txDetail.data.token_transfers.length > 0 && 
+      (txDetail.data.token_transfers[0].token.type == "ERC-721" || txDetail.data.token_transfers[0].token.type == "ERC-1155")){
+      return "NFT"
+    }
+
+    return "unknown"
+  }
+
+
+  processFailedReasonsSwap(txDetail) {
+    const oThis = this;
+
+    let swapEvents = oThis.getSwapEvents(txDetail);
+
+    if (swapEvents.length == 0) {
+      return "no-decoded-swap-event";
+    } else if (oThis.isNullPresentInSwapEvents(swapEvents, txDetail)) {
+      return "decimal-null-present";
+    }
+
+    return "unknown"
+  }
+
+  getSwapEvents(formattedTxDetail) {
+    const oThis = this,
+      swapEvents = [];
+
+    for (let eventLog of formattedTxDetail.logsData["items"]) {
+      if (oThis.isSwapEvent(eventLog)) {
+        swapEvents.push(eventLog);
+      }
+    }
+
+    return swapEvents;
+  }
+
+  isSwapEvent(event) {
+    const oThis = this;
+
+    return oThis.getMethodName(event) === "Swap";
+  }
+
+  isNullPresentInSwapEvents(swapEvents, txDetail) {
+    const oThis = this;
+    const swapDetailsArray = oThis.getSwapDetails(swapEvents);
+    const data = txDetail.data;
+    const tokenTransfers = data.token_transfers;
+
+    const formattedSwapDetailsArray = [];
+    
+    let decimalNull = false;
+    for (let i = 0; i < swapDetailsArray.length; i++) {
+      const swapDetail = swapDetailsArray[i];
+      const swapContractAddress = swapDetail.swapContractAddress.toLowerCase();
+      const currentSwapIndex = swapDetail.index;
+      const previousSwapIndex = i > 0 ? swapDetailsArray[i - 1].index : 0;
+
+      for (let tokenTransferObj of tokenTransfers) {
+        const tokenTransferFromAddress = tokenTransferObj.from.hash.toLowerCase();
+        const tokenTransferToAddress = tokenTransferObj.to.hash.toLowerCase();
+        const tokenTransferLogIndex = tokenTransferObj.log_index;
+
+        if(tokenTransferLogIndex < currentSwapIndex && tokenTransferLogIndex >= previousSwapIndex) {
+          if (!swapDetail.outgoingAddress && tokenTransferFromAddress == swapContractAddress) {
+            swapDetail.outgoingAddress = tokenTransferObj.token.address;
+            const decimal = tokenTransferObj.total.decimals;
+            if (decimal == null) {
+              decimalNull = true;
+            }
+            swapDetail.outgoingDecimal = decimal;
+            swapDetail.outgoingAmount = oThis.formatNumbers(swapDetail.outgoingAmount , decimal);
+          }
+          if (!swapDetail.incomingAddress && tokenTransferToAddress == swapContractAddress) {
+            swapDetail.incomingAddress = tokenTransferObj.token.address;
+            const decimal = tokenTransferObj.total.decimals;
+            swapDetail.incomingDecimal = decimal;
+            if (decimal == null) {
+              decimalNull = true;
+            }
+            swapDetail.incomingAmount = oThis.formatNumbers(swapDetail.incomingAmount , decimal);
+          }
+        }   
+      }
+
+
+      if (i != 0 && !swapDetail.incomingAddress) {
+        swapDetail.incomingAddress = formattedSwapDetailsArray[i-1].outgoingAddress;
+        swapDetail.incomingAmount = oThis.formatNumbers(swapDetail.incomingAmount ,  formattedSwapDetailsArray[i-1].outgoingDecimal);
+      } 
+
+      if (i == (swapDetailsArray.length - 1) && !swapDetail.outgoingAddress) {
+        swapDetail.outgoingAddress = "Ether"
+        swapDetail.outgoingAmount = oThis.formatNumbers(swapDetail.outgoingAmount,  18);
+      }
+
+      formattedSwapDetailsArray.push(swapDetail);
+    }
+
+    if (decimalNull) {
+      return true;
+    }
+
+    return false;
+  }
+
+  getSwapDetails(swapEvents) {
+    const oThis = this;
+
+    const swapDetails = [];
+    for (let event of swapEvents) {
+      const parameters = event.decoded.parameters;
+      const methodId = event.decoded.method_id;
+      const logIndex = event.index;
+
+      const paramsNameToValueMap = {};
+      for (let param of parameters) {
+        if (!paramsNameToValueMap[param.name]) {
+          paramsNameToValueMap[param.name] = param.value;
+        }
+      }
+      const swapDetail = {
+        swapContractAddress: event.address.hash,
+        index: logIndex
+      };
+
+      if (methodId == "d78ad95f") {
+        swapDetail.incomingAmount = oThis.assignBiggerValue( paramsNameToValueMap["amount0In"], paramsNameToValueMap["amount1In"]);
+        swapDetail.outgoingAmount = oThis.assignBiggerValue( paramsNameToValueMap["amount0Out"], paramsNameToValueMap["amount1Out"]);
+      } else {
+        if (paramsNameToValueMap["amount0"] < 0) {
+          swapDetail.outgoingAmount = paramsNameToValueMap["amount0"];
+          swapDetail.incomingAmount = paramsNameToValueMap["amount1"];
+        } else {
+          swapDetail.outgoingAmount = paramsNameToValueMap["amount1"];
+          swapDetail.incomingAmount = paramsNameToValueMap["amount0"];
+        }
+      }
+
+      swapDetails.push(swapDetail);
+    }
+
+    return swapDetails;
+  }
+
+  formatNumbers(number, decimal) {
+    const oThis = this;
+
+    if (decimal == 0) {
+      return oThis.addCommas(number);
+    }
+    decimal = decimal || 18;
+
+    let value =  new BigNumber(number)
+      .dividedBy(new BigNumber(10).pow(decimal))
+      .toString(10);
+    
+    if (value.startsWith("-")) {
+      value = value.replace("-", "");
+    }
+
+    return oThis.addCommas(value);
+  }
+
+  addCommas(value) {
+    let parts = value.split(".");
+    parts[0] = parts[0].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
+  }
+
+  assignBiggerValue(amount0In, amount1In) {
+    const amount0 = BigInt(amount0In);
+    const amount1 = BigInt(amount1In);
+
+    // Assign bigger value
+    return amount0 >= amount1 ? amount0In : amount1In;
+  }
+}
+
+const constructSummary = new ConstructSummary();
+
+constructSummary
+  .perform()
+  .then(function(rsp) {
+    process.exit(0);
+  })
+  .catch(function(err) {
+    console.log("Error in script: ", err);
+    process.exit(1);
+  });

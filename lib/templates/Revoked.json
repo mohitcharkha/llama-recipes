@@ -1,0 +1,14 @@
+{
+  "type": "Revoked",
+  "variables": {
+    "contractAddress": {
+      "data_point": "data",
+      "path": "to.hash"
+    },
+    "spendor": {
+      "data_point": "data",
+      "path": "decoded_input.parameters[0].value"
+    }
+  },
+  "message": "Revoked {contractAddress} From Trade On {spendor}"
+}
