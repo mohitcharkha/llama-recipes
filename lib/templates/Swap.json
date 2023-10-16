@@ -1,0 +1,55 @@
+{
+  "type": "Swap",
+  "triggers": [
+    {
+      "data_point": "events",
+      "function": {
+        "name": "checkIfSingleSwap",
+        "args": [
+          {
+            "name": "eventsArray",
+            "path": "items"
+          }
+        ],
+        "value": "oThis.checkIfSingleSwap = function checkIfSingleSwap(args) {     const oThis = this;    const eventsArray = args.eventsArray;    if (eventsArray.length == 0) {      return false;    }    let swapEvents = [];    let getMethodName = function(event) {      const methodCall = event && event.decoded && event.decoded.method_call;      const method = methodCall && methodCall.split('(')[0];      return method || event.temp_function_name;    }    let index = 0;    for (let eventLog of eventsArray) {      if (getMethodName(eventLog) === 'Swap') {        swapEvents.push({          index: index,          eventLog: eventLog,        });      }      index++;    }    if (swapEvents.length != 1 ) {      return false;    }    const swapEvent = swapEvents[0];    let transferEventBeforeSwap = 0;    for (let i = swapEvent.index - 1; i >= 0; i--) {      const eventLog = eventsArray[i];      if (getMethodName(eventLog) === 'Transfer') {        transferEventBeforeSwap++;      }    }    if (transferEventBeforeSwap < 2) {      return false;    }    return true;  }"   
+      }
+    }
+  ],
+  "preprocessed_variables": {
+    "function": {
+      "name": "getSwapDetails",
+      "args": [
+        {
+          "name": "eventsArray",
+          "data_point": "events",
+          "path": "items"
+        },
+        {
+          "name": "tokenTransfers",
+          "data_point": "data",
+          "path": "token_transfers"
+        }
+      ],
+      "value": "oThis.checkIfSingleSwap = function getSwapDetails(args) {    const oThis = this;    const eventsArray = args.eventsArray;    const tokenTransfers = args.tokenTransfers;    let getMethodName = function(event) {      const methodCall = event && event.decoded && event.decoded.method_call;      const method = methodCall && methodCall.split('(')[0];      return method || event.temp_function_name;    }    let convertToDecimal = function(value, decimal) {      return new BigNumber(value)        .dividedBy(new BigNumber(10).pow(decimal))        .toString();    }    let swapEvent = null;    for (let eventLog of eventsArray) {      if (getMethodName(eventLog) === 'Swap') {        swapEvent = eventLog;        break;      }    }    const swapContractAddress = swapEvent.address.hash.toLowerCase();    let incomingAmount = new BigNumber(0);    let outgoingAmount = new BigNumber(0);    let incomingTokenAddress = null;    let outgoingTokenAddress = null;    for (let tokenTransfer of tokenTransfers) {      const tokenTransferToAddress = tokenTransfer.to.hash.toLowerCase();      const tokenTransferFromAddress = tokenTransfer.from.hash.toLowerCase();      if (tokenTransferToAddress == swapContractAddress) {        const decimal = tokenTransfer.total.decimals;        const formattedOutgoingAmount = convertToDecimal(          tokenTransfer.total.value,          decimal        );        incomingAmount = incomingAmount.plus(formattedOutgoingAmount);        incomingTokenAddress = tokenTransfer.token.address;      }      if (tokenTransferFromAddress == swapContractAddress) {        const decimal = tokenTransfer.total.decimals;        const formattedOutgoingAmount = convertToDecimal(          tokenTransfer.total.value,          decimal        );        outgoingAmount = outgoingAmount.plus(formattedOutgoingAmount);        outgoingTokenAddress = tokenTransfer.token.address;      }    }    if (      incomingTokenAddress &&      incomingTokenAddress.toUpperCase() ==        '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'.toUpperCase()    ) {      incomingTokenAddress = 'Ether';    }    if (      outgoingTokenAddress &&      outgoingTokenAddress.toUpperCase() ==        '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'.toUpperCase()    ) {      outgoingTokenAddress = 'Ether';    }    let convertToNumberWithCommas = function(value) {      let parts = value.split('.');      parts[0] = Number(parts[0]).toLocaleString('en-US');      return parts.join('.');    }    return {      incomingAmount: convertToNumberWithCommas(incomingAmount.toString()),      outgoingAmount: convertToNumberWithCommas(outgoingAmount.toString()),      incomingTokenAddress: incomingTokenAddress,      outgoingTokenAddress: outgoingTokenAddress,    }  }"
+    }
+  },
+  "variables": {
+    "incomingAmount": {
+      "data_point": "preprocessed_variables",
+      "path": "incomingAmount"
+    },
+    "incomingTokenAddress": {
+      "data_point": "preprocessed_variables",
+      "path": "incomingTokenAddress"
+    },
+    "outgoingAmount": {
+      "data_point": "preprocessed_variables",
+      "path": "outgoingAmount"
+    },
+    "outgoingTokenAddress": {
+      "data_point": "preprocessed_variables",
+      "path": "outgoingTokenAddress"
+    }
+  },
+  "message": "Swap {incomingAmount} {incomingTokenAddress} For {outgoingAmount} {outgoingTokenAddress}"
+}

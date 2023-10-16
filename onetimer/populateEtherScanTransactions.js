@@ -10,30 +10,37 @@
 
 const rootPrefix = '..',
   httpRequest = require(rootPrefix + '/lib/HttpRequest'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  TransactionModel = require(rootPrefix + '/app/models/mysql/main/Transaction');
+  transactionDetailsConstants = require(rootPrefix +
+    "/lib/globalConstant/transactionDetails"),
+  TransactionsDetailsModel = require(rootPrefix + '/app/models/mysql/main/TransactionsDetails');
 
 const API_ENDPOINT = "https://api.etherscan.io/api";
 const API_KEY = coreConstants.etherscanApiKey;
 
-const start_block = 17712420; // 17700000 
-const end_block = 18112532; // example block
-
+const start_block = 17700000;
+const offset = -4000;
+const numberOfBlocks = 1000;
 
 class PopulateTransactionsFromEtherscan {
   constructor() {}
 
   async perform() {
+    const oThis = this;
     console.log('Start Perform');
+
+    const blocksArray = oThis.getBlocksArray(start_block);
+
+    console.log('Total blocks: ', blocksArray);
+
     // Fetch Transactions
-    for (let block = start_block; block < end_block; block++) {
+    for (let block of blocksArray) {
       console.log('block: ', block);
       let transactionsData = await this.fetchTransactions(block);
 
       let txArray = [];
       for (let tx of transactionsData) {
-        txArray.push([tx.transaction_hash, tx.data, tx.from_address, tx.to_address, tx.value, tx.type, tx.input, tx.block_number]);
+        txArray.push([ tx.transaction_hash, tx.block_number, transactionDetailsConstants.pendingStatus, transactionDetailsConstants.pendingHighlightedEventStatus]);
       }
       console.log('Total Tx in block: ', txArray.length);
       
@@ -41,8 +48,8 @@ class PopulateTransactionsFromEtherscan {
         continue;
       }
 
-      let transactionObj = new TransactionModel();
-      await transactionObj.insertRecords(['tx_hash', 'data', 'from_address', 'to_address', 'value', 'type', 'input', 'block_number'],txArray);
+      let transactionObj = new TransactionsDetailsModel();
+      await transactionObj.insertRecords(['transaction_hash', 'block_number', 'status', 'highlighted_event_status'],txArray);
       // await basicHelper.sleep(200);
     }
       console.log('End Perform');
@@ -71,18 +78,22 @@ class PopulateTransactionsFromEtherscan {
       const hexString = tx.blockNumber;
       const numberValue = parseInt(hexString, 16);  
       transactionsData.push({
-            data: JSON.stringify(tx),
             transaction_hash: tx.hash,
-            from_address: tx.from,
-            to_address: tx.to,
-            input: tx.input,
-            value: tx.value,
-            type: tx.type,
             block_number: numberValue
         });
     }
 
     return transactionsData;
+  }
+
+  // Function to get blocks array using start block and offset
+  getBlocksArray(start_block) {
+    let blocksArray = [];
+    for (let i = 1; i <= numberOfBlocks; i++) {
+      let blockNumber = start_block + (i * offset)
+      blocksArray.push(blockNumber);
+    }
+    return blocksArray;
   }
 }
 

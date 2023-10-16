@@ -50,6 +50,7 @@ build/Release
 # https://docs.npmjs.com/cli/shrinkwrap#caveats
 node_modules
 package-lock.json
+yarn.lock
 
 # Optional npm cache directory
 .npm
@@ -63,3 +64,5 @@ npm-debug.log*
 
 .DS_Store
 set_env_vars.sh
+
+training_dataset_llama2_50k.json
