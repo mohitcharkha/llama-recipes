@@ -2,7 +2,21 @@ fs = require("fs");
 a = require("../training_dataset_llama2_50k.json");
 b = [];
 c = {};
+const BigNumber = require("bignumber.js");
 
+function convertToDecimal(value, decimal) {
+  if (!value) {
+    return 0;
+  }
+
+  if (!decimal) {
+    return value;
+  }
+
+  return new BigNumber(value)
+    .dividedBy(new BigNumber(10).pow(decimal))
+    .toString();
+}
 
 function getMethodIdFromTopicsArray(topics) {
     return topics[0]?.split("0x")[1]?.substring(0, 8) ?? "NA";
@@ -42,25 +56,29 @@ function getMethodParameters(methodParameters) {
 
 function getShortAddress(address){
     if(address){
-    let startAdd = address.substring(0,6);
-    let endAdd = address.substring(address.length -4);
-    return startAdd + endAdd;
+        let startAdd = address.substring(0,6);
+        let endAdd = address.substring(address.length -4);
+        return (startAdd + endAdd).toLowerCase();
     }else{
         return "NA";
     }
 }
 
 
-function formatOutput(arr){
+function formatOutput(arr, replaceEther){
     let outputArr = [];
     for (var index in arr) {
-        arrChunks = arr[index].replaceAll(",", "").replaceAll(".", "").split(" ");
+        arrChunks = arr[index].replaceAll(",", "").split(" ");
         arrCleanChunks = [];
         for (var chunkIndex in arrChunks) {
             /*if(/^\d+$/.test(arrChunks[chunkIndex])) {
                 arrCleanChunks.push("[amount]");
                 continue;
             }*/
+            if(replaceEther && arrChunks[chunkIndex] === "Ether"){
+                arrCleanChunks.push(getShortAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"));
+                continue;
+            }
             if(/^0x/.test(arrChunks[chunkIndex])) {
                 arrCleanChunks.push(getShortAddress(arrChunks[chunkIndex]));
                 continue;
@@ -72,6 +90,19 @@ function formatOutput(arr){
     return outputArr.join("\n");
 }
 
+function getTokenTransferValue(total){
+    if(total.token_id){
+        if(total.value){
+            return `value=${convertToDecimal(total.value, total?.decimals)}\n` + `decimal=${total?.decimals || 0}\n`;
+        }
+        else{
+            return "value=1\n" + `decimal=${total?.decimals || 0}\n`;
+        }
+    }
+    else{
+        return `value=${convertToDecimal(total.value, total.decimals)}\n` + `decimal=${total.decimals}\n`;
+    }
+}
 
 
 async function main() {
@@ -84,6 +115,31 @@ async function main() {
 
     for (i = 0; i < a.length; i++) {
         input = JSON.parse(a[i].input);
+        let shouldSkip = false;
+        let replaceEther = false;
+        if(!input.event_logs.length){
+            console.log("no event logs");
+            continue;
+        }
+        for (j = 0; j < input.token_transfers.length; j++) {
+            let token_transfer = input.token_transfers[j];
+            if(token_transfer.token?.type === "ERC-20" && !token_transfer.total.decimals){
+                shouldSkip = true;
+                console.log("no decimal in token transfer");
+                continue;
+            }
+        }
+        for (j = 0; j < input.event_logs.length; j++) {
+           let event_log = input.event_logs[j];
+           if(!event_log.decoded){
+                shouldSkip = true;
+                continue;
+           }
+        }
+        if(shouldSkip){
+            continue;
+        }
+
         let input_string = "Transaction details are:\n" +
             // `from=${getShortAddress(input.transactions.from?.hash)} (${input.transactions.from?.name ?? "NA"})\n` +
             // `to=${getShortAddress(input.transactions.to?.hash)} (${input.transactions.to?.name ?? "NA"})\n` +
@@ -91,7 +147,7 @@ async function main() {
             `from_name=${input.transactions.from?.name ?? "NA"}\n` +
             `to=${getShortAddress(input.transactions.to?.hash)}\n` +
             `to_name=${input.transactions.to?.name ?? "NA"}\n` +
-            `value=${input.transactions.value || 0}\n` +
+            `value=${convertToDecimal(input.transactions.value, 18)}\n` +
             `input_method=${input.transactions.method ?? "NA"}\n` +
             `input_method_params=${getMethodParameters(input.transactions.decoded_input?.parameters)}\n\n`;
 
@@ -99,6 +155,9 @@ async function main() {
             input_string += `${input.token_transfers.length} token tranfers:\n`;
             for (j = 0; j < input.token_transfers.length; j++) {
                 let token_transfer = input.token_transfers[j];
+                if(token_transfer.token?.name === "Wrapped Ether"){
+                    replaceEther = true;
+                }
                 input_string += `${j + 1}) ` +
                     `type=${token_transfer.type}\n` +
                     // `from=${getShortAddress(token_transfer.from.hash)} (${token_transfer.from?.name ?? "NA"})\n` +
@@ -107,8 +166,7 @@ async function main() {
                     `from_name=${token_transfer.from?.name ?? "NA"}\n` +
                     `to=${getShortAddress(token_transfer.to?.hash)}\n` +
                     `to_name=${token_transfer.to?.name ?? "NA"}\n` +
-                    `value=${token_transfer.total.value || 0}\n` +
-                    `decimal=${token_transfer.total.decimal || 0}\n` +
+                    getTokenTransferValue(token_transfer.total) +
                     `log_index=${token_transfer.log_index ?? "NA"}\n` +
                     `token_name=${token_transfer.token?.name ?? token_transfer.token?.symbol ?? "NA"}\n` +
                     `token_type=${token_transfer.token?.type ?? "NA"}\n` +
@@ -136,9 +194,15 @@ async function main() {
 
 
 
+        let output = JSON.parse(a[i].output);
+
+        let firstWord = String(output.join(",")).split(" ")[0];
+        output = formatOutput(output, replaceEther);
+
         let contentLength = llamaTokenizer.default.encode(
-            instruction + input_string
+            instruction + input_string + output
         )?.length;
+       
         if (contentLength > 2900) {
             if(contentLength>max){
                 max = contentLength;
@@ -158,10 +222,9 @@ async function main() {
         b[count].instruction = instruction;
 
         b[count].input = input_string;
-        let output = JSON.parse(a[i].output);
+       
+        b[count].output = output;
 
-        let firstWord = String(output.join(",")).split(" ")[0];
-        b[count].output = formatOutput(output);
         b[count].transactionHash = input.transactions.hash;
 
         c[firstWord] ||= [];
@@ -189,8 +252,8 @@ async function main() {
         delete finalOutput[i].transactionHash;
     }
     console.log({ skipCount, percent: skipCount / a.length * 100})
-    fs.writeFileSync("alpaca_data_string_2900.json", JSON.stringify(finalOutput));
-    fs.writeFileSync("hashes_string_2900.json", JSON.stringify(transcationHashArray));
+    fs.writeFileSync("alpaca_data.json", JSON.stringify(finalOutput));
+    fs.writeFileSync("hashes.json", JSON.stringify(transcationHashArray));
 }
 main().then(() => {
     console.log("done");

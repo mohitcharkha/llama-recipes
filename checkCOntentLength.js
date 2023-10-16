@@ -1,4 +1,4 @@
-a = require("./inference_data_string_3900-4900_nontrained_30.json");
+a = require("./inference_data.json");
 async function main() {
   let max = 0;
   let llamaTokenizer = await import("./llama-tokenizer.js");

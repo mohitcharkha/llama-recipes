@@ -8,7 +8,14 @@ pip install --extra-index-url https://download.pytorch.org/whl/test/cu118 llama-
 
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
 apt-get install git-lfs
+
+# To Clone Llama 2 chat model
+
 cd workspace && git clone https://huggingface.co/meta-llama/Llama-2-7b-chat-hf
+
+# To Clone model from huggingface
+
+cd workspace && git clone https://huggingface.co/<your-username>/<your-model-name>
 
 # To clone CodeLLama Instruct Model
 
