@@ -72,7 +72,7 @@ def main(
     
     results = []
     stat_result = {"match": {}, "not_match": {}}
-    max,min,total = 0,1000,0
+    max,min,total = 0,100000,0
     for data_prompt in data_prompts:
         user_prompt=PROMPT_DICT["prompt_input"].format_map(data_prompt)
         batch = tokenizer(user_prompt, return_tensors="pt")
