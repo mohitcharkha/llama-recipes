@@ -25,6 +25,15 @@ password: xyz
 apt update
 apt install vim
 
+# Install wanDB
+
+pip install wandb
+
+# WandB Authentication
+
+wandb login <br>
+Provide [your API key](https://wandb.ai/authorize) when prompted.
+
 ## Navigate to the llma_recipes repo
 
 cd /usr/local/lib/python3.10/dist-packages/llama_recipes
@@ -33,6 +42,18 @@ cd /usr/local/lib/python3.10/dist-packages/llama_recipes
 
 // change max_words count to 1800
 vim utils/dataset_utils.py
+
+## Replace the the following files to integrate wanDB in above package path
+
+```
+src/llama_recipes/finetuning.py with wanDb/finetuning.py
+```
+
+```
+src/llama_recipes/utils/train_utils.py with wanDb/train_utils.py
+```
+
+For more details, see wanDB usage in [wanDb](wanDb) folder
 
 ## clone the llama-recipes repo in workspace directory
 
@@ -47,6 +68,10 @@ cd workspace/llama_recipes
 ## Running the Fine Tunning Modal
 
 nohup python -m llama_recipes.finetuning --num_epochs 30 --use_peft --peft_method lora --quantization --dataset alpaca_dataset --save_model --model_name /workspace/Llama-2-7b-chat-hf --output_dir /workspace/Llama-2-7b-chat-hf-string-trained &
+
+## Running the Fine Tunning with WandB integration
+
+nohup python -m llama_recipes.finetuning --project="YourProjectName" --name="YourExperimentName" --num_epochs 30 --use_peft --peft_method lora --quantization --dataset alpaca_dataset --save_model --model_name /workspace/Llama-2-7b-chat-hf --output_dir /workspace/Llama-2-7b-chat-hf-string-trained &
 
 # For Code Llama training
 

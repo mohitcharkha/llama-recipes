@@ -1,8 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
-
 import wandb
-
 import os
 from pkg_resources import packaging
 
@@ -51,8 +49,10 @@ def main(**kwargs):
 
     # Update the configuration for the training and sharding process
     update_config((train_config, fsdp_config), **kwargs)
+    project = kwargs.get("project", "default_project_name")
+    name = kwargs.get("name", "default_experiment_name")
     # Initialize Wandb change the project name and experiment name as per your requirement
-    wandb.init(project="Llama_2_fine_tuning", name= "experiment_1_with_graphs", config={"learning_rate": train_config.lr, "epochs": train_config.num_epochs, "batch_size_training": train_config.batch_size_training})
+    wandb.init(project= project, name= name, config={"learning_rate": train_config.lr, "epochs": train_config.num_epochs, "batch_size_training": train_config.batch_size_training})
 
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(train_config.seed)
