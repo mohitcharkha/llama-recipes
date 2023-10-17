@@ -72,6 +72,7 @@ def main(
     
     results = []
     stat_result = {"match": {}, "not_match": {}}
+    max,min,total = 0,100000,0
     for data_prompt in data_prompts:
         user_prompt=PROMPT_DICT["prompt_input"].format_map(data_prompt)
         batch = tokenizer(user_prompt, return_tensors="pt")
@@ -99,6 +100,11 @@ def main(
         model_classification_response = output_text.split("### Response:")[1].strip()
         results.append([transaction_hash,expected_output, model_classification_response])
         print(f"({e2e_inference_time} ms) {transaction_hash} expected_response:{expected_output} model_classification_response:{model_classification_response}")
+        if e2e_inference_time > max:
+            max = e2e_inference_time
+        elif e2e_inference_time < min:
+            min = e2e_inference_time
+        total += e2e_inference_time
         if expected_output == model_classification_response:
             stat_result["match"][expected_output] = stat_result["match"].get(expected_output, 0) + 1
         else:
@@ -107,6 +113,8 @@ def main(
         print(f"stat_result: {stat_result}\n\n")    
             
     print("========================Script Complete Result====================== \n\n")
+    avg = total / len(data_prompts)
+    print("max_time: ",{max},"s, min_time: ",{min},"s, avg_time:",{avg},"s, total_time: ",{total},"s")
     for result in results:    
         print(",".join(result)) 
 

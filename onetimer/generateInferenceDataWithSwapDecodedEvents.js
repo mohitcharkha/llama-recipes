@@ -2,6 +2,7 @@ fs = require("fs");
 a = require("../training_dataset_llama2_50k.json");
 b = [];
 c = {};
+hashes = require("../hashes_string_2900-new.json");
 const BigNumber = require("bignumber.js");
 
 function convertToDecimal(value, decimal) {
@@ -17,6 +18,7 @@ function convertToDecimal(value, decimal) {
     .dividedBy(new BigNumber(10).pow(decimal))
     .toString();
 }
+
 
 function getMethodIdFromTopicsArray(topics) {
     return topics[0]?.split("0x")[1]?.substring(0, 8) ?? "NA";
@@ -104,10 +106,12 @@ function getTokenTransferValue(total){
     }
 }
 
+function getMethodName(event_log){
+    return event_log.decoded?.method_call.split("(")?.[0] ?? "NA";
+}
 
 async function main() {
     let count = 0;
-    let skipCount = 0;
     let max = 0;
     const instruction = "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.";
 
@@ -115,8 +119,16 @@ async function main() {
 
     for (i = 0; i < a.length; i++) {
         input = JSON.parse(a[i].input);
+
+        let output = JSON.parse(a[i].output);
+
+        let firstWord = String(output.join(",")).split(" ")[0];
+
         let shouldSkip = false;
         let replaceEther = false;
+        if(firstWord != "Swap"){
+            continue;
+        }
         if(!input.event_logs.length){
             console.log("no event logs");
             continue;
@@ -129,14 +141,15 @@ async function main() {
                 continue;
             }
         }
+       let shouldNotSkip = false;
         for (j = 0; j < input.event_logs.length; j++) {
            let event_log = input.event_logs[j];
-           if(!event_log.decoded){
-                shouldSkip = true;
+           if(getMethodName(event_log) === "Swap"){
+                shouldNotSkip = true;
                 continue;
            }
         }
-        if(shouldSkip){
+        if(shouldSkip || !shouldNotSkip){
             continue;
         }
 
@@ -184,7 +197,7 @@ async function main() {
                     `from=${getShortAddress(input.event_logs[j].address?.hash)}\n` +
                     `from_name=${input.event_logs[j].address?.name ?? "NA"}\n` +
                     `index=${input.event_logs[j].index}\n` +
-                    `method_name=${input.event_logs[j].decoded?.method_call.split("(")?.[0] ?? "NA"}\n` +
+                    `method_name=${getMethodName(input.event_logs[j])}\n` +
                     `method_id=${getMethodIdFromTopicsArray(input.event_logs[j].topics)}\n` +
                     `method_params=${getMethodParameters(input.event_logs[j].decoded?.parameters)}\n\n`;
             };
@@ -192,31 +205,34 @@ async function main() {
             input_string += "No event logs.\n\n"
         }
 
-
-
-        let output = JSON.parse(a[i].output);
-
-        let firstWord = String(output.join(",")).split(" ")[0];
+       
         output = formatOutput(output, replaceEther);
 
         let contentLength = llamaTokenizer.default.encode(
             instruction + input_string + output
         )?.length;
-       
         if (contentLength > 2900) {
             if(contentLength>max){
                 max = contentLength;
             }
             console.log("contentLength is greater ", contentLength);
-            skipCount += 1;
             continue;
         }
-        // console.log({contentLength})
 
-        // if (JSON.parse(a[i].output).length > 1) {
-        //     console.log("skipping multi line outputs")
+        //Uncomment to put lower limit to contentLength
+        // if(contentLength < 3900){
         //     continue;
         // }
+
+    if(hashes.includes(input.transactions.hash)){
+        continue
+    }
+        // console.log({contentLength})
+
+        if ((JSON.parse(a[i].output).length > 1)) {
+            console.log("skipping multi line outputs")
+            continue;
+        }
         b[count] = {};
 
         b[count].instruction = instruction;
@@ -235,25 +251,23 @@ async function main() {
         //   break;
         // }
     }
-    let typeCount = 3000;
+    let typeCount = 0;
     let maxPerTypeCount = 75;
     let finalOutput = [];
+    let supportedTypes = ["Swap"];
     for (let type in c) {
-        if (c[type].length < typeCount) {
+
+        // To add check on typeCount uncomment following line
+        // if (c[type].length < typeCount) {
+        if (!supportedTypes.includes(type)) {
             console.log("skip ", type, " ", c[type].length);
             continue;
         }
         console.log("add  ", type, " ", c[type].length);
         finalOutput = finalOutput.concat(c[type].slice(0, maxPerTypeCount === 0 ? c[type].length : maxPerTypeCount));
     }
-    let transcationHashArray = [];
-    for (let i in finalOutput) {
-        transcationHashArray.push(finalOutput[i].transactionHash);
-        delete finalOutput[i].transactionHash;
-    }
-    console.log({ skipCount, percent: skipCount / a.length * 100})
-    fs.writeFileSync("alpaca_data.json", JSON.stringify(finalOutput));
-    fs.writeFileSync("hashes.json", JSON.stringify(transcationHashArray));
+
+    fs.writeFileSync("inference_data_string_2900_swap_decoded_events_75.json", JSON.stringify(finalOutput));
 }
 main().then(() => {
     console.log("done");

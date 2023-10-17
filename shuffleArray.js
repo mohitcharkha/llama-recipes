@@ -1,5 +1,5 @@
 fs = require("fs");
-a = require("./inference_data_2640_nontrained.json");
+a = require("./inference_data.json");
 
 function shuffleArray(array) {
   for (var i = array.length - 1; i > 0; i--) {
@@ -23,7 +23,4 @@ shuffleArray(a);
 //     array = [];
 //   }
 // }
-fs.writeFileSync(
-  "inference_data_2640_nontrained_final.json",
-  JSON.stringify(a)
-);
+fs.writeFileSync("inference_data_shuffled.json", JSON.stringify(a));
