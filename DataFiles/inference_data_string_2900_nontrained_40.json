@@ -1,0 +1,371 @@
+[
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xfdF2Ba96\nfrom_name=NA\nto=0x3fC97FAD\nto_name=UniversalRouter\nvalue=0\ninput_method=execute\ninput_method_params=NA, NA, 1689925943\n\n3 token tranfers:\n1) type=token_transfer\nfrom=0xB1603D9D\nfrom_name=NA\nto=0x3fC97FAD\nto_name=UniversalRouter\nvalue=14862253598889957\ndecimal=0\nlog_index=276\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n2) type=token_transfer\nfrom=0xfdF2Ba96\nfrom_name=NA\nto=0xB1603D9D\nto_name=NA\nvalue=10000000874279117545\ndecimal=0\nlog_index=277\ntoken_name=Energy Web Token Bridged\ntoken_type=ERC-20\ntoken_address=0x178c6054\n\n3) type=token_burning\nfrom=0x3fC97FAD\nfrom_name=UniversalRouter\nto=0x00000000\nto_name=NA\nvalue=14862253598889957\ndecimal=0\nlog_index=280\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n6 event logs:\n1) from=0x00008BA3\nfrom_name=NA\nindex=275\nmethod_name=Permit\nmethod_id=c6a377bf\nmethod_params=0xfdf2ba96, 0x178c6054, 0x3fc97fad, 1461501637330902918203684832716283019655932542975, 1692516149, 0\n\n2) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=276\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0xb1603d9d, 0x3fc97fad, 14862253598889957\n\n3) from=0x178c6054\nfrom_name=Energy Web Token Bridged\nindex=277\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n4) from=0x178c6054\nfrom_name=Energy Web Token Bridged\nindex=278\nmethod_name=NA\nmethod_id=11249f0f\nmethod_params=NA\n\n5) from=0xB1603D9D\nfrom_name=NA\nindex=279\nmethod_name=NA\nmethod_id=c42079f9\nmethod_params=NA\n\n6) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=280\nmethod_name=Withdrawal\nmethod_id=7fcf532c\nmethod_params=0x3fc97fad, 14862253598889957\n\n",
+    "output":
+      "Swap 10000000874279117545 0x178c6054 For 0014862253598889957 Ether On Uniswap V3",
+    "transactionHash":
+      "0xf637d3d9f551aca571f84c65422b503a6cdb80f04b96d2d4ba050cfefebd074b"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xe015629f\nfrom_name=NA\nto=0x7a25488D\nto_name=UniswapV2Router02\nvalue=100000000000000000\ninput_method=swapExactETHForTokensSupportingFeeOnTransferTokens\ninput_method_params=0, 0xc02a6cc2,0xfd4580d0, 0xe015629f, 1690165984\n\n3 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x7a25488D\nto_name=UniswapV2Router02\nvalue=100000000000000000\ndecimal=0\nlog_index=0\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n2) type=token_transfer\nfrom=0x7a25488D\nfrom_name=UniswapV2Router02\nto=0xFbAE5463\nto_name=Uniswap V2\nvalue=100000000000000000\ndecimal=0\nlog_index=1\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n3) type=token_transfer\nfrom=0xFbAE5463\nfrom_name=Uniswap V2\nto=0xe015629f\nto_name=NA\nvalue=140874556530624\ndecimal=0\nlog_index=2\ntoken_name=𝕏\ntoken_type=ERC-20\ntoken_address=0xFd4580D0\n\n5 event logs:\n1) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=0\nmethod_name=Deposit\nmethod_id=e1fffcc4\nmethod_params=0x7a25488d, 100000000000000000\n\n2) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=1\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x7a25488d, 0xfbae5463, 100000000000000000\n\n3) from=0xFd4580D0\nfrom_name=𝕏\nindex=2\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n4) from=0xFbAE5463\nfrom_name=Uniswap V2\nindex=3\nmethod_name=Sync\nmethod_id=1c411e9a\nmethod_params=2357359068496825548, 4252817889734191\n\n5) from=0xFbAE5463\nfrom_name=Uniswap V2\nindex=4\nmethod_name=Swap\nmethod_id=d78ad95f\nmethod_params=0x7a25488d, 100000000000000000, 0, 0, 187832742040832, 0xe015629f\n\n",
+    "output": "Swap 01 Ether For 187832742040832 0xfd4580d0 On Uniswap V2",
+    "transactionHash":
+      "0x90f44b7a32a4823955d0818f671545cc7d5d2b8bb0c3ccc169927abb12fe7bf9"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x2eDBF3D0\nfrom_name=NA\nto=0x7a25488D\nto_name=UniswapV2Router02\nvalue=94408928360604060\ninput_method=swapExactETHForTokensSupportingFeeOnTransferTokens\ninput_method_params=0, 0xc02a6cc2,0xfd4580d0, 0x2edbf3d0, 1690165978\n\n3 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x7a25488D\nto_name=UniswapV2Router02\nvalue=94408928360604060\ndecimal=0\nlog_index=5\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n2) type=token_transfer\nfrom=0x7a25488D\nfrom_name=UniswapV2Router02\nto=0xFbAE5463\nto_name=JamUniswapV2Pair\nvalue=94408928360604060\ndecimal=0\nlog_index=6\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n3) type=token_transfer\nfrom=0xFbAE5463\nfrom_name=JamUniswapV2Pair\nto=0x2eDBF3D0\nto_name=NA\nvalue=122466435167477\ndecimal=0\nlog_index=7\ntoken_name=𝕏\ntoken_type=ERC-20\ntoken_address=0xFd4580D0\n\n5 event logs:\n1) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=5\nmethod_name=Deposit\nmethod_id=e1fffcc4\nmethod_params=0x7a25488d, 94408928360604060\n\n2) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=6\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x7a25488d, 0xfbae5463, 94408928360604060\n\n3) from=0xFd4580D0\nfrom_name=𝕏\nindex=7\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n4) from=0xFbAE5463\nfrom_name=JamUniswapV2Pair\nindex=8\nmethod_name=Sync\nmethod_id=1c411e9a\nmethod_params=2451767996857429608, 4089529309510889\n\n5) from=0xFbAE5463\nfrom_name=JamUniswapV2Pair\nindex=9\nmethod_name=Swap\nmethod_id=d78ad95f\nmethod_params=0x7a25488d, 94408928360604060, 0, 0, 163288580223302, 0x2edbf3d0\n\n",
+    "output":
+      "Swap 009440892836060406 Ether For 163288580223302 0xfd4580d0 On Uniswap V2",
+    "transactionHash":
+      "0xc9ea9603182e32ff48149ea716a2e0ed8108e04d910a53aaf87026a543a5dafd"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xae2FaE13\nfrom_name=NA\nto=0x6b759A80\nto_name=NA\nvalue=405189929\ninput_method=0x008ee812\ninput_method_params=NA\n\n4 token tranfers:\n1) type=token_transfer\nfrom=0x12b76e9c\nfrom_name=NA\nto=0x6b759A80\nto_name=NA\nvalue=461400818885813597807237367961\ndecimal=0\nlog_index=10\ntoken_name=Dave\ntoken_type=ERC-20\ntoken_address=0x7f4c0dbD\n\n2) type=token_transfer\nfrom=0x6b759A80\nfrom_name=NA\nto=0x12b76e9c\nto_name=NA\nvalue=1740277493723561984\ndecimal=0\nlog_index=11\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n3) type=token_transfer\nfrom=0x6b759A80\nfrom_name=NA\nto=0xD14809e3\nto_name=JamUniswapV2Pair\nvalue=179733240192434176\ndecimal=0\nlog_index=13\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n4) type=token_transfer\nfrom=0xD14809e3\nfrom_name=JamUniswapV2Pair\nto=0x6b759A80\nto_name=NA\nvalue=6739854226358272\ndecimal=0\nlog_index=14\ntoken_name=Satoshi X Nakamoto\ntoken_type=ERC-20\ntoken_address=0x397BDc68\n\n7 event logs:\n1) from=0x7f4c0dbD\nfrom_name=Dave\nindex=10\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n2) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=11\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x6b759a80, 0x12b76e9c, 1740277493723561984\n\n3) from=0x12b76e9c\nfrom_name=NA\nindex=12\nmethod_name=Swap\nmethod_id=c42079f9\nmethod_params=0x6b759a80, 0x6b759a80, -461400818885813597807237367961, 1740277493723561984, 154417679352218928750402, 88321778411292178052763481, -262977\n\n4) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=13\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x6b759a80, 0xd14809e3, 179733240192434176\n\n5) from=0x397BDc68\nfrom_name=Satoshi X Nakamoto\nindex=14\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n6) from=0xD14809e3\nfrom_name=Uniswap V2\nindex=15\nmethod_name=Sync\nmethod_id=1c411e9a\nmethod_params=169076135063439005, 4674998862298658083\n\n7) from=0xD14809e3\nfrom_name=Uniswap V2\nindex=16\nmethod_name=Swap\nmethod_id=d78ad95f\nmethod_params=0x6b759a80, 0, 179733240192434176, 6739854226358272, 0, 0x6b759a80\n\n",
+    "output":
+      "Swap 1740277493723561984 Ether For 461400818885813597807237367961 0x7f4c0dbd On Uniswap V3\nSwap 0179733240192434176 Ether For 6739854226358272 0x397bdc68 On Uniswap V2",
+    "transactionHash":
+      "0x48216bf55718900496f2d1a6245f66d34cfd0d44fade099a9ce9ae10d8896501"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xcAAd19f8\nfrom_name=NA\nto=0x881D300C\nto_name=NA\nvalue=1000000000000000000\ninput_method=0x5f575529\ninput_method_params=NA\n\n4 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x11110582\nto_name=AggregationRouterV5\nvalue=991250000000000000\ndecimal=0\nlog_index=17\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n2) type=token_transfer\nfrom=0x12b76e9c\nfrom_name=NA\nto=0x74de6631\nto_name=NA\nvalue=258676690857176442804030537861\ndecimal=0\nlog_index=18\ntoken_name=Dave\ntoken_type=ERC-20\ntoken_address=0x7f4c0dbD\n\n3) type=token_transfer\nfrom=0x11110582\nfrom_name=AggregationRouterV5\nto=0x12b76e9c\nto_name=NA\nvalue=991250000000000000\ndecimal=0\nlog_index=19\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n4) type=token_transfer\nfrom=0x74de6631\nfrom_name=NA\nto=0xcAAd19f8\nto_name=NA\nvalue=258676690857176442804030537861\ndecimal=0\nlog_index=22\ntoken_name=Dave\ntoken_type=ERC-20\ntoken_address=0x7f4c0dbD\n\n7 event logs:\n1) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=17\nmethod_name=Deposit\nmethod_id=e1fffcc4\nmethod_params=0x11110582, 991250000000000000\n\n2) from=0x7f4c0dbD\nfrom_name=Dave\nindex=18\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n3) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=19\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x11110582, 0x12b76e9c, 991250000000000000\n\n4) from=0x12b76e9c\nfrom_name=NA\nindex=20\nmethod_name=Swap\nmethod_id=c42079f9\nmethod_params=0x11110582, 0x74de6631, -258676690857176442804030537861, 991250000000000000, 155304202616949487578375, 88321778411292178052763481, -262863\n\n5) from=0xF3261915\nfrom_name=NA\nindex=21\nmethod_name=NA\nmethod_id=3d0ce9bf\nmethod_params=NA\n\n6) from=0x7f4c0dbD\nfrom_name=Dave\nindex=22\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n7) from=0x881D300C\nfrom_name=NA\nindex=23\nmethod_name=NA\nmethod_id=beee1e6e\nmethod_params=NA\n\n",
+    "output":
+      "Swap 099125 Ether For 258676690857176442804030537861 0x7f4c0dbd On Uniswap V3",
+    "transactionHash":
+      "0xb97a28cf6807fbd045764d7c5da05d28ac1b3dd421216990728df2cce8542ad6"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xD9e4EE14\nfrom_name=NA\nto=0x3fC97FAD\nto_name=UniversalRouter\nvalue=80947201432909677\ninput_method=execute\ninput_method_params=NA, NA, 1690167635\n\n3 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x3fC97FAD\nto_name=UniversalRouter\nvalue=80947201432909677\ndecimal=0\nlog_index=24\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n2) type=token_transfer\nfrom=0x3fC97FAD\nfrom_name=UniversalRouter\nto=0xD14809e3\nto_name=JamUniswapV2Pair\nvalue=80947201432909677\ndecimal=0\nlog_index=25\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n3) type=token_transfer\nfrom=0xD14809e3\nfrom_name=JamUniswapV2Pair\nto=0xD9e4EE14\nto_name=NA\nvalue=2869224719301763\ndecimal=0\nlog_index=26\ntoken_name=Satoshi X Nakamoto\ntoken_type=ERC-20\ntoken_address=0x397BDc68\n\n5 event logs:\n1) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=24\nmethod_name=Deposit\nmethod_id=e1fffcc4\nmethod_params=0x3fc97fad, 80947201432909677\n\n2) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=25\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x3fc97fad, 0xd14809e3, 80947201432909677\n\n3) from=0x397BDc68\nfrom_name=Satoshi X Nakamoto\nindex=26\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n4) from=0xD14809e3\nfrom_name=JamUniswapV2Pair\nindex=27\nmethod_name=Sync\nmethod_id=1c411e9a\nmethod_params=166206910344137242, 4755946063731567760\n\n5) from=0xD14809e3\nfrom_name=JamUniswapV2Pair\nindex=28\nmethod_name=Swap\nmethod_id=d78ad95f\nmethod_params=0x3fc97fad, 0, 80947201432909677, 2869224719301763, 0, 0xd9e4ee14\n\n",
+    "output":
+      "Swap 0080947201432909677 Ether For 2869224719301763 0x397bdc68 On Uniswap V2",
+    "transactionHash":
+      "0x5094bd47ce104346452fe70eb5b9af32b65eaa00f2951d40edb3eeb849c21b73"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xae2FaE13\nfrom_name=NA\nto=0x6b759A80\nto_name=NA\nvalue=407389099\ninput_method=0x008ede12\ninput_method_params=NA\n\n4 token tranfers:\n1) type=token_transfer\nfrom=0x12b76e9c\nfrom_name=NA\nto=0x6b759A80\nto_name=NA\nvalue=1749722854792647751\ndecimal=0\nlog_index=29\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n2) type=token_transfer\nfrom=0x6b759A80\nfrom_name=NA\nto=0x12b76e9c\nto_name=NA\nvalue=461400812440535833794434376748\ndecimal=0\nlog_index=30\ntoken_name=Dave\ntoken_type=ERC-20\ntoken_address=0x7f4c0dbD\n\n3) type=token_transfer\nfrom=0x6b759A80\nfrom_name=NA\nto=0xD14809e3\nto_name=JamUniswapV2Pair\nvalue=6739854226358272\ndecimal=0\nlog_index=32\ntoken_name=Satoshi X Nakamoto\ntoken_type=ERC-20\ntoken_address=0x397BDc68\n\n4) type=token_transfer\nfrom=0xD14809e3\nfrom_name=JamUniswapV2Pair\nto=0x6b759A80\nto_name=NA\nvalue=184808057585270784\ndecimal=0\nlog_index=33\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n7 event logs:\n1) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=29\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x12b76e9c, 0x6b759a80, 1749722854792647751\n\n2) from=0x7f4c0dbD\nfrom_name=Dave\nindex=30\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n3) from=0x12b76e9c\nfrom_name=NA\nindex=31\nmethod_name=Swap\nmethod_id=c42079f9\nmethod_params=0x6b759a80, 0x6b759a80, 461400812440535833794434376748, -1749722854792647751, 153734631338064204636996, 88321778411292178052763481, -263066\n\n4) from=0x397BDc68\nfrom_name=Satoshi X Nakamoto\nindex=32\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n5) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=33\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0xd14809e3, 0x6b759a80, 184808057585270784\n\n6) from=0xD14809e3\nfrom_name=JamUniswapV2Pair\nindex=34\nmethod_name=Sync\nmethod_id=1c411e9a\nmethod_params=172946764570495514, 4571138006146296976\n\n7) from=0xD14809e3\nfrom_name=JamUniswapV2Pair\nindex=35\nmethod_name=Swap\nmethod_id=d78ad95f\nmethod_params=0x6b759a80, 6739854226358272, 0, 0, 184808057585270784, 0x6b759a80\n\n",
+    "output":
+      "Swap 461400812440535833794434376748 0x7f4c0dbd For 1749722854792647751 Ether On Uniswap V3\nSwap 6739854226358272 0x397bdc68 For 0184808057585270784 Ether On Uniswap V2",
+    "transactionHash":
+      "0xe5657412916aaf1cb6aa19009cc3765449b302a5032a1ec26f052d6616452673"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x331866B9\nfrom_name=NA\nto=0x7a25488D\nto_name=UniswapV2Router02\nvalue=0\ninput_method=swapExactTokensForETHSupportingFeeOnTransferTokens\ninput_method_params=891651562224098247, 989887612787982011, 0xa6282372,0xc02a6cc2, 0x331866b9, 1690165922415\n\n4 token tranfers:\n1) type=token_transfer\nfrom=0x331866B9\nfrom_name=NA\nto=0xa6282372\nto_name=X\nvalue=8916515622240900\ndecimal=0\nlog_index=36\ntoken_name=X\ntoken_type=ERC-20\ntoken_address=0xa6282372\n\n2) type=token_transfer\nfrom=0x331866B9\nfrom_name=NA\nto=0x8e83E4aE\nto_name=JamUniswapV2Pair\nvalue=882735046601857347\ndecimal=0\nlog_index=37\ntoken_name=X\ntoken_type=ERC-20\ntoken_address=0xa6282372\n\n3) type=token_transfer\nfrom=0x8e83E4aE\nfrom_name=JamUniswapV2Pair\nto=0x7a25488D\nto_name=UniswapV2Router02\nvalue=1113929296709593644\ndecimal=0\nlog_index=39\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n4) type=token_burning\nfrom=0x7a25488D\nfrom_name=UniswapV2Router02\nto=0x00000000\nto_name=NA\nvalue=1113929296709593644\ndecimal=0\nlog_index=42\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n7 event logs:\n1) from=0xa6282372\nfrom_name=X\nindex=36\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x331866b9, 0xa6282372, 8916515622240900\n\n2) from=0xa6282372\nfrom_name=X\nindex=37\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x331866b9, 0x8e83e4ae, 882735046601857347\n\n3) from=0xa6282372\nfrom_name=X\nindex=38\nmethod_name=Approval\nmethod_id=8c5be1e5\nmethod_params=0x331866b9, 0x7a25488d, 115792089237316195423570985008687907853269984665640564039453268805204591025112\n\n4) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=39\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x8e83e4ae, 0x7a25488d, 1113929296709593644\n\n5) from=0x8e83E4aE\nfrom_name=JamUniswapV2Pair\nindex=40\nmethod_name=Sync\nmethod_id=1c411e9a\nmethod_params=32383434386311702237, 39870556186308309059\n\n6) from=0x8e83E4aE\nfrom_name=JamUniswapV2Pair\nindex=41\nmethod_name=Swap\nmethod_id=d78ad95f\nmethod_params=0x7a25488d, 882735046601857347, 0, 0, 1113929296709593644, 0x7a25488d\n\n7) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=42\nmethod_name=Withdrawal\nmethod_id=7fcf532c\nmethod_params=0x7a25488d, 1113929296709593644\n\n",
+    "output":
+      "Swap 882735046601857347 0xa6282372 For 1113929296709593644 Ether On Uniswap V2",
+    "transactionHash":
+      "0x7cb5f9b8548e2aed07e6e2cf8f8eaf0e6fac9f9d01878275efd6816b814c84ce"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x8ACB119e\nfrom_name=NA\nto=0x77EDf83f\nto_name=TransparentUpgradeableProxy\nvalue=0\ninput_method=0x0938b20b\ninput_method_params=NA\n\n6 token tranfers:\n1) type=token_transfer\nfrom=0x8ACB119e\nfrom_name=NA\nto=0xd563087b\nto_name=JamUniswapV2Pair\nvalue=74775577092096059275860\ndecimal=0\nlog_index=47\ntoken_name=greg\ntoken_type=ERC-20\ntoken_address=0x2B9ad67a\n\n2) type=token_transfer\nfrom=0xd563087b\nfrom_name=JamUniswapV2Pair\nto=0x77EDf83f\nto_name=TransparentUpgradeableProxy\nvalue=33602946543874542\ndecimal=0\nlog_index=49\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n3) type=token_transfer\nfrom=0x4e68Fa36\nfrom_name=UniswapV3Pool\nto=0x77EDf83f\nto_name=TransparentUpgradeableProxy\nvalue=62939212\ndecimal=0\nlog_index=52\ntoken_name=Tether USD\ntoken_type=ERC-20\ntoken_address=0xdAC11ec7\n\n4) type=token_transfer\nfrom=0x77EDf83f\nfrom_name=TransparentUpgradeableProxy\nto=0x4e68Fa36\nto_name=UniswapV3Pool\nvalue=33602946543874542\ndecimal=0\nlog_index=53\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n5) type=token_transfer\nfrom=0x77EDf83f\nfrom_name=TransparentUpgradeableProxy\nto=0x69AA46D2\nto_name=NA\nvalue=188817\ndecimal=0\nlog_index=55\ntoken_name=Tether USD\ntoken_type=ERC-20\ntoken_address=0xdAC11ec7\n\n6) type=token_transfer\nfrom=0x77EDf83f\nfrom_name=TransparentUpgradeableProxy\nto=0x8ACB119e\nto_name=NA\nvalue=62750395\ndecimal=0\nlog_index=56\ntoken_name=Tether USD\ntoken_type=ERC-20\ntoken_address=0xdAC11ec7\n\n11 event logs:\n1) from=0x2B9ad67a\nfrom_name=greg\nindex=47\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x8acb119e, 0xd563087b, 74775577092096059275860\n\n2) from=0x2B9ad67a\nfrom_name=greg\nindex=48\nmethod_name=Approval\nmethod_id=8c5be1e5\nmethod_params=0x8acb119e, 0x77edf83f, 0\n\n3) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=49\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0xd563087b, 0x77edf83f, 33602946543874542\n\n4) from=0xd563087b\nfrom_name=Uniswap V2\nindex=50\nmethod_name=Sync\nmethod_id=1c411e9a\nmethod_params=69423346033105488050852912, 31257910426036630271\n\n5) from=0xd563087b\nfrom_name=Uniswap V2\nindex=51\nmethod_name=Swap\nmethod_id=d78ad95f\nmethod_params=0x77edf83f, 74775577092096059275860, 0, 0, 33602946543874542, 0x77edf83f\n\n6) from=0xdAC11ec7\nfrom_name=Tether USD\nindex=52\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x4e68fa36, 0x77edf83f, 62939212\n\n7) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=53\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x77edf83f, 0x4e68fa36, 33602946543874542\n\n8) from=0x4e68Fa36\nfrom_name=UniswapV3Pool\nindex=54\nmethod_name=Swap\nmethod_id=c42079f9\nmethod_params=0x77edf83f, 0x77edf83f, 33602946543874542, -62939212, 3434028535107971420720123, 4084479285118125498, -200938\n\n9) from=0xdAC11ec7\nfrom_name=Tether USD\nindex=55\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x77edf83f, 0x69aa46d2, 188817\n\n10) from=0xdAC11ec7\nfrom_name=Tether USD\nindex=56\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x77edf83f, 0x8acb119e, 62750395\n\n11) from=0x77EDf83f\nfrom_name=TransparentUpgradeableProxy\nindex=57\nmethod_name=NA\nmethod_id=20efd6d5\nmethod_params=NA\n\n",
+    "output":
+      "Swap 7477557709209605927586 0x2b9ad67a For 0033602946543874542 Ether On Uniswap V2\nSwap 0033602946543874542 Ether For 62939212 0xdac11ec7 On Uniswap V3",
+    "transactionHash":
+      "0x5508a5dd3b554c3308a2d8339f97da94ed87b7205b7755bc7bc203138ab8b665"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x9E41356f\nfrom_name=NA\nto=0x7a25488D\nto_name=UniswapV2Router02\nvalue=50000000000000000\ninput_method=swapExactETHForTokensSupportingFeeOnTransferTokens\ninput_method_params=210941427364354179407981958, 0xc02a6cc2,0x5b427539, 0x9e41356f, 1690165984\n\n3 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x7a25488D\nto_name=UniswapV2Router02\nvalue=50000000000000000\ndecimal=0\nlog_index=62\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n2) type=token_transfer\nfrom=0x7a25488D\nfrom_name=UniswapV2Router02\nto=0xEF98Ac8c\nto_name=JamUniswapV2Pair\nvalue=50000000000000000\ndecimal=0\nlog_index=63\ntoken_name=Wrapped Ether\ntoken_type=ERC-20\ntoken_address=0xC02a6Cc2\n\n3) type=token_transfer\nfrom=0xEF98Ac8c\nfrom_name=JamUniswapV2Pair\nto=0x9E41356f\nto_name=NA\nvalue=1012518851348900061158313403\ndecimal=0\nlog_index=64\ntoken_name=EGGROLL RACES\ntoken_type=ERC-20\ntoken_address=0x5b427539\n\n5 event logs:\n1) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=62\nmethod_name=Deposit\nmethod_id=e1fffcc4\nmethod_params=0x7a25488d, 50000000000000000\n\n2) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=63\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x7a25488d, 0xef98ac8c, 50000000000000000\n\n3) from=0x5b427539\nfrom_name=EGGROLL RACES\nindex=64\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n4) from=0xEF98Ac8c\nfrom_name=Uniswap V2\nindex=65\nmethod_name=Sync\nmethod_id=1c411e9a\nmethod_params=139364068007653559575812882036, 6636945842725927618\n\n5) from=0xEF98Ac8c\nfrom_name=Uniswap V2\nindex=66\nmethod_name=Swap\nmethod_id=d78ad95f\nmethod_params=0x7a25488d, 0, 50000000000000000, 1054707136821770897039909794, 0, 0x9e41356f\n\n",
+    "output":
+      "Swap 005 Ether For 1054707136821770897039909794 0x5b427539 On Uniswap V2",
+    "transactionHash":
+      "0xf666fc7f07ee85d3ae87b5c39ff00f6b88b262ba5a969462e10af8e6156c6e13"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x845a4dE5\nfrom_name=NA\nto=0x4D054b18\nto_name=Atoshi\nvalue=0\ninput_method=transfer\ninput_method_params=0x9647d844, 5000000000000000000000\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0x845a4dE5\nfrom_name=NA\nto=0x9647d844\nto_name=NA\nvalue=5000000000000000000000\ndecimal=0\nlog_index=281\ntoken_name=Atoshi\ntoken_type=ERC-20\ntoken_address=0x4D054b18\n\n1 event logs:\n1) from=0x4D054b18\nfrom_name=Atoshi\nindex=281\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x845a4de5, 0x9647d844, 5000000000000000000000\n\n",
+    "output": "Transfer 5000 0x4d054b18 To 0x9647d844",
+    "transactionHash":
+      "0xbe4be1c802ca453d6d1c777720460526e3d00a63546bc8b41c3d7d3659342962"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x01E7921B\nfrom_name=NA\nto=0xA0b8eB48\nto_name=USD//C\nvalue=0\ninput_method=transfer\ninput_method_params=0xd066efdc, 389513533\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0x01E7921B\nfrom_name=NA\nto=0xD066eFdc\nto_name=NA\nvalue=389513533\ndecimal=0\nlog_index=283\ntoken_name=USD Coin\ntoken_type=ERC-20\ntoken_address=0xA0b8eB48\n\n1 event logs:\n1) from=0xA0b8eB48\nfrom_name=USD//C\nindex=283\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Transfer 389513533 0xa0b8eb48 To 0xd066efdc",
+    "transactionHash":
+      "0x46a9f795e01d6c9f6cbd5a3e22bee495fb5e553215c36c0e56b9e037c4068fea"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xD67aB035\nfrom_name=NA\nto=0x514986CA\nto_name=ChainLink Token\nvalue=0\ninput_method=transfer\ninput_method_params=0x85b5d832, 2930200980000000000000\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0xD67aB035\nfrom_name=NA\nto=0x85b5d832\nto_name=NA\nvalue=2930200980000000000000\ndecimal=0\nlog_index=285\ntoken_name=ChainLink Token\ntoken_type=ERC-20\ntoken_address=0x514986CA\n\n1 event logs:\n1) from=0x514986CA\nfrom_name=ChainLink Token\nindex=285\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Transfer 293020098 0x514986ca To 0x85b5d832",
+    "transactionHash":
+      "0xcf06a818a676370b5e0f627c29d86cd5f74805a1e58b36dad5a9226ec1986e24"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xE872c730\nfrom_name=NA\nto=0xa62cD71C\nto_name=TransparentUpgradeableProxy\nvalue=0\ninput_method=transfer\ninput_method_params=0x6acb2b1b, 13448100000000000000000\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0xE872c730\nfrom_name=NA\nto=0x6Acb2b1b\nto_name=NA\nvalue=13448100000000000000000\ndecimal=0\nlog_index=287\ntoken_name=StormX\ntoken_type=ERC-20\ntoken_address=0xa62cD71C\n\n1 event logs:\n1) from=0xa62cD71C\nfrom_name=TransparentUpgradeableProxy\nindex=287\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Transfer 134481 0xa62cd71c To 0x6acb2b1b",
+    "transactionHash":
+      "0xcfb92724ff6e558a6a77c6609d2c93afc2fb45650f43692c66e83a8b6f762a01"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x5041081A\nfrom_name=NA\nto=0xdAC11ec7\nto_name=Tether USD\nvalue=0\ninput_method=transfer\ninput_method_params=0x7f5d5620, 1000000000\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0x5041081A\nfrom_name=NA\nto=0x7f5D5620\nto_name=NA\nvalue=1000000000\ndecimal=0\nlog_index=139\ntoken_name=Tether USD\ntoken_type=ERC-20\ntoken_address=0xdAC11ec7\n\n1 event logs:\n1) from=0xdAC11ec7\nfrom_name=Tether USD\nindex=139\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x5041081a, 0x7f5d5620, 1000000000\n\n",
+    "output": "Transfer 1000 0xdac11ec7 To 0x7f5d5620",
+    "transactionHash":
+      "0x5a2d8bdb111f7b4ef5693a66861b6d3c3dab590fa49e262a932373b1b4bc4f2d"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xed7cbf5F\nfrom_name=NA\nto=0xA0b8eB48\nto_name=USD//C\nvalue=0\ninput_method=transfer\ninput_method_params=0xbab20333, 112250000\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0xed7cbf5F\nfrom_name=NA\nto=0xbab20333\nto_name=NA\nvalue=112250000\ndecimal=0\nlog_index=178\ntoken_name=USD Coin\ntoken_type=ERC-20\ntoken_address=0xA0b8eB48\n\n1 event logs:\n1) from=0xA0b8eB48\nfrom_name=USD//C\nindex=178\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Transfer 11225 0xa0b8eb48 To 0xbab20333",
+    "transactionHash":
+      "0x13ff81a81b0fbe12911b1e1ddf02c85df9cc995ad8f2762dac9dfbfe4740e775"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xDFd5963d\nfrom_name=NA\nto=0xdAC11ec7\nto_name=Tether USD\nvalue=0\ninput_method=transfer\ninput_method_params=0xe9c557df, 45260000\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0xDFd5963d\nfrom_name=NA\nto=0xE9c557Df\nto_name=NA\nvalue=45260000\ndecimal=0\nlog_index=179\ntoken_name=Tether USD\ntoken_type=ERC-20\ntoken_address=0xdAC11ec7\n\n1 event logs:\n1) from=0xdAC11ec7\nfrom_name=Tether USD\nindex=179\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0xdfd5963d, 0xe9c557df, 45260000\n\n",
+    "output": "Transfer 4526 0xdac11ec7 To 0xe9c557df",
+    "transactionHash":
+      "0xc1cbd3df0025f887df6616ca6b6c4e1631ac5508e072fa62ae136f230c8104c9"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x1fb74BC0\nfrom_name=NA\nto=0x95aDC4cE\nto_name=TokenMintERC20Token\nvalue=0\ninput_method=transfer\ninput_method_params=0xfdef315d, 14336879900000000000000000\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0x1fb74BC0\nfrom_name=NA\nto=0xfdEF315d\nto_name=NA\nvalue=14336879900000000000000000\ndecimal=0\nlog_index=183\ntoken_name=SHIBA INU\ntoken_type=ERC-20\ntoken_address=0x95aDC4cE\n\n1 event logs:\n1) from=0x95aDC4cE\nfrom_name=TokenMintERC20Token\nindex=183\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x1fb74bc0, 0xfdef315d, 14336879900000000000000000\n\n",
+    "output": "Transfer 143368799 0x95adc4ce To 0xfdef315d",
+    "transactionHash":
+      "0x750596c6f1f49e27e5ace64245bca310acbaa72db074e12b422051a4c2acc006"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xcDd32af2\nfrom_name=NA\nto=0xdAC11ec7\nto_name=Tether USD\nvalue=0\ninput_method=transfer\ninput_method_params=0x894062aa, 104797145\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0xcDd32af2\nfrom_name=NA\nto=0x894062AA\nto_name=NA\nvalue=104797145\ndecimal=0\nlog_index=197\ntoken_name=Tether USD\ntoken_type=ERC-20\ntoken_address=0xdAC11ec7\n\n1 event logs:\n1) from=0xdAC11ec7\nfrom_name=Tether USD\nindex=197\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0xcdd32af2, 0x894062aa, 104797145\n\n",
+    "output": "Transfer 104797145 0xdac11ec7 To 0x894062aa",
+    "transactionHash":
+      "0x9d79627051c67208d62d22c39cc2c0660c0f858c269b34af44c3f186606150b4"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x05a58BD1\nfrom_name=NA\nto=0xA0b8eB48\nto_name=USD//C\nvalue=0\ninput_method=transfer\ninput_method_params=0x10dcdd94, 548890000\n\n1 token tranfers:\n1) type=token_transfer\nfrom=0x05a58BD1\nfrom_name=NA\nto=0x10DcDd94\nto_name=NA\nvalue=548890000\ndecimal=0\nlog_index=198\ntoken_name=USD Coin\ntoken_type=ERC-20\ntoken_address=0xA0b8eB48\n\n1 event logs:\n1) from=0xA0b8eB48\nfrom_name=USD//C\nindex=198\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Transfer 54889 0xa0b8eb48 To 0x10dcdd94",
+    "transactionHash":
+      "0x77541c3f66fdd28f522c5fed29041e336c9a98f0ec018deacf9904879d261a25"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xE5626666\nfrom_name=NA\nto=0xAF230Cb7\nto_name=XBetNow\nvalue=0\ninput_method=approve\ninput_method_params=0x00008ba3, 115792089237316195423570985008687907853269984665640564039457584007913129639935\n\nNo token tranfers.\n\n1 event logs:\n1) from=0xAF230Cb7\nfrom_name=XBetNow\nindex=302\nmethod_name=NA\nmethod_id=8c5be1e5\nmethod_params=NA\n\n",
+    "output": "Approved 0xaf230cb7 For Trade On 0x00008ba3",
+    "transactionHash":
+      "0x05ac640791cb7704decbd11745c45194df9b9963b0c04d93759999d6c5e61c74"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x666B4158\nfrom_name=NA\nto=0xABC17b34\nto_name=Pond0x\nvalue=0\ninput_method=approve\ninput_method_params=0x00008ba3, 115792089237316195423570985008687907853269984665640564039457584007913129639935\n\nNo token tranfers.\n\n1 event logs:\n1) from=0xABC17b34\nfrom_name=Pond0x\nindex=308\nmethod_name=NA\nmethod_id=8c5be1e5\nmethod_params=NA\n\n",
+    "output": "Approved 0xabc17b34 For Trade On 0x00008ba3",
+    "transactionHash":
+      "0x82a8068f08dd8039fd15929e8312a8d4192427dbfceec3d23639232a657e4534"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xB867CAa1\nfrom_name=NA\nto=0xC02a6Cc2\nto_name=Wrapped Ether\nvalue=0\ninput_method=approve\ninput_method_params=0x00008ba3, 131436112702908708\n\nNo token tranfers.\n\n1 event logs:\n1) from=0xC02a6Cc2\nfrom_name=Wrapped Ether\nindex=310\nmethod_name=Approval\nmethod_id=8c5be1e5\nmethod_params=0xb867caa1, 0x00008ba3, 131436112702908708\n\n",
+    "output": "Approved 0xc02a6cc2 For Trade On 0x00008ba3",
+    "transactionHash":
+      "0x4d96b8c60a30a945907db99539417af7b781c5ebd01e952465904ef5d32856e8"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x476016A1\nfrom_name=NA\nto=0xf311A9c8\nto_name=Ethereum 2.0\nvalue=0\ninput_method=approve\ninput_method_params=0x00008ba3, 86643006466484305707345350052\n\nNo token tranfers.\n\n1 event logs:\n1) from=0xf311A9c8\nfrom_name=Ethereum 2.0\nindex=327\nmethod_name=NA\nmethod_id=8c5be1e5\nmethod_params=NA\n\n",
+    "output": "Approved 0xf311a9c8 For Trade On 0x00008ba3",
+    "transactionHash":
+      "0xd001778b862f1885f70cd661aeb893208fc4e60cbb49f1aa8ef9c4ddbb7efae6"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x9E086C85\nfrom_name=NA\nto=0x3F3C90Ec\nto_name=Rho Token\nvalue=0\ninput_method=approve\ninput_method_params=0x00008ba3, 20000000000000000099\n\nNo token tranfers.\n\n1 event logs:\n1) from=0x3F3C90Ec\nfrom_name=Rho Token\nindex=338\nmethod_name=NA\nmethod_id=8c5be1e5\nmethod_params=NA\n\n",
+    "output": "Approved 0x3f3c90ec For Trade On 0x00008ba3",
+    "transactionHash":
+      "0x87070590acdd82f14ef69edf7bf800a9f688f0bb5aea1e53f17750a6b36e0299"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x6Adc413e\nfrom_name=NA\nto=0xd95a01f2\nto_name=Fuck Pauly0x\nvalue=0\ninput_method=approve\ninput_method_params=0x7a25488d, 7449532157208525081\n\nNo token tranfers.\n\n1 event logs:\n1) from=0xd95a01f2\nfrom_name=Fuck Pauly0x\nindex=339\nmethod_name=NA\nmethod_id=8c5be1e5\nmethod_params=NA\n\n",
+    "output": "Approved 0xd95a01f2 For Trade On 0x7a25488d",
+    "transactionHash":
+      "0x69b863b2a386776b04814d17da21d5ffd4fae0aa1c9f219ac3b3ba5267571064"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xd00C7836\nfrom_name=NA\nto=0xD807DB86\nto_name=StandardToken\nvalue=0\ninput_method=approve\ninput_method_params=0xc92e0110, 115792089237316195423570985008687907853269984665640564039457584007913129639935\n\nNo token tranfers.\n\n1 event logs:\n1) from=0xD807DB86\nfrom_name=StandardToken\nindex=348\nmethod_name=Approval\nmethod_id=8c5be1e5\nmethod_params=0xd00c7836, 0xc92e0110, 115792089237316195423570985008687907853269984665640564039457584007913129639935\n\n",
+    "output": "Approved 0xd807db86 For Trade On 0xc92e0110",
+    "transactionHash":
+      "0xb7a4e82392f5962679ed29de12f0ae10fd48313e85303dd0ce9bf23ae1d660aa"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xB37030f8\nfrom_name=NA\nto=0x6B171d0F\nto_name=Dai\nvalue=0\ninput_method=approve\ninput_method_params=0x00008ba3, 1000000000000000000000\n\nNo token tranfers.\n\n1 event logs:\n1) from=0x6B171d0F\nfrom_name=Dai\nindex=353\nmethod_name=Approval\nmethod_id=8c5be1e5\nmethod_params=0xb37030f8, 0x00008ba3, 1000000000000000000000\n\n",
+    "output": "Approved 0x6b171d0f For Trade On 0x00008ba3",
+    "transactionHash":
+      "0x5e27ed0301091d0eacd46f2a5fe104fc22667e1cef7f7f5c9df10007cad65cda"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xeF28470f\nfrom_name=NA\nto=0x7E77b068\nto_name=Escrowed Illuvium 2\nvalue=0\ninput_method=approve\ninput_method_params=0x00008ba3, 30086436206028146081\n\nNo token tranfers.\n\n2 event logs:\n1) from=0x7E77b068\nfrom_name=Escrowed Illuvium 2\nindex=356\nmethod_name=NA\nmethod_id=71594b34\nmethod_params=NA\n\n2) from=0x7E77b068\nfrom_name=Escrowed Illuvium 2\nindex=357\nmethod_name=NA\nmethod_id=8c5be1e5\nmethod_params=NA\n\n",
+    "output": "Approved 0x7e77b068 For Trade On 0x00008ba3",
+    "transactionHash":
+      "0x02a1bda4b070bcbc218f3d6e2b078081b2b9e1eaa33e20191c45eddeee11e0d5"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x423B6318\nfrom_name=NA\nto=0xdAC11ec7\nto_name=Tether USD\nvalue=0\ninput_method=approve\ninput_method_params=0x10dc8a38, 115792089237316195423570985008687907853269984665640564039457584007913129639935\n\nNo token tranfers.\n\n1 event logs:\n1) from=0xdAC11ec7\nfrom_name=Tether USD\nindex=366\nmethod_name=Approval\nmethod_id=8c5be1e5\nmethod_params=0x423b6318, 0x10dc8a38, 115792089237316195423570985008687907853269984665640564039457584007913129639935\n\n",
+    "output": "Approved 0xdac11ec7 For Trade On 0x10dc8a38",
+    "transactionHash":
+      "0x914d012eb2c6648172be8968c69e616cb126914000a07be91609d9a798c92d64"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x339c9FCd\nfrom_name=NA\nto=0xDb8dc006\nto_name=NA\nvalue=690000000000000\ninput_method=mint\ninput_method_params=0xefb96de3, 1035553008, 501, NA, 0x339c9fcd\n\n1 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x339c9FCd\nto_name=NA\nvalue=1\ndecimal=0\nlog_index=498\ntoken_name=Art Unchained Editions\ntoken_type=ERC-1155\ntoken_address=0xefB96De3\n\n2 event logs:\n1) from=0xefB96De3\nfrom_name=Art Unchained Editions\nindex=498\nmethod_name=NA\nmethod_id=c3d58168\nmethod_params=NA\n\n2) from=0xDb8dc006\nfrom_name=NA\nindex=499\nmethod_name=NA\nmethod_id=5d404f36\nmethod_params=NA\n\n",
+    "output": "Mint 1 of 0xefb96de3",
+    "transactionHash":
+      "0x972e292a9e6ba7d708c05fdf53c0efb5b05d4fee5013387cbc3ff3b274aebfa3"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xa007bc5E\nfrom_name=NA\nto=0x00004bf5\nto_name=NA\nvalue=26900000000000000\ninput_method=NA\ninput_method_params=NA\n\n10 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=502\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n2) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=503\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n3) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=504\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n4) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=505\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n5) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=506\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n6) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=507\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n7) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=508\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n8) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=509\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n9) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=510\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n10) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xa007bc5E\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=511\ntoken_name=Persons, Places &amp; Things - Dustin Yellin x Nouns x FWB\ntoken_type=ERC-721\ntoken_address=0xe8663353\n\n11 event logs:\n1) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=502\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4191\n\n2) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=503\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4192\n\n3) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=504\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4193\n\n4) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=505\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4194\n\n5) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=506\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4195\n\n6) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=507\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4196\n\n7) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=508\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4197\n\n8) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=509\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4198\n\n9) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=510\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4199\n\n10) from=0xe8663353\nfrom_name=ERC721SeaDrop\nindex=511\nmethod_name=Transfer\nmethod_id=ddf252ad\nmethod_params=0x00000000, 0xa007bc5e, 4200\n\n11) from=0x00004bf5\nfrom_name=NA\nindex=512\nmethod_name=SeaDropMint\nmethod_id=e90cf9cc\nmethod_params=0xe8663353, 0xa007bc5e, 0x0000a719, 0xa007bc5e, 10, 2690000000000000, 750, 0\n\n",
+    "output": "Mint 10 of 0xe8663353",
+    "transactionHash":
+      "0xcfbf64b816ff8d0ae8048ef5a82f5f1a08665a5026dbd2ebfadc275962d53805"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xC04B6e57\nfrom_name=NA\nto=0x932248bF\nto_name=Zerion DNA 1.0\nvalue=0\ninput_method=mint\ninput_method_params=NA\n\n1 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xC04B6e57\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=302\ntoken_name=Zerion DNA 1.0\ntoken_type=ERC-721\ntoken_address=0x932248bF\n\n1 event logs:\n1) from=0x932248bF\nfrom_name=Zerion DNA 1.0\nindex=302\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Mint 1 of 0x932248bf",
+    "transactionHash":
+      "0x90225a98196367571f8c178e3db44b83e1a68bf7c0dcb5639fdfe5329c2a0451"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xD019a7fD\nfrom_name=NA\nto=0x00000803\nto_name=mint.fun !fundrop pass\nvalue=0\ninput_method=mint\ninput_method_params=0xec3d83c3, NA\n\n1 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xD019a7fD\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=350\ntoken_name=mint.fun !fundrop pass\ntoken_type=ERC-721\ntoken_address=0x00000803\n\n2 event logs:\n1) from=0x00000803\nfrom_name=mint.fun !fundrop pass\nindex=349\nmethod_name=NA\nmethod_id=cecb5f5b\nmethod_params=NA\n\n2) from=0x00000803\nfrom_name=mint.fun !fundrop pass\nindex=350\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Mint 1 of 0x00000803",
+    "transactionHash":
+      "0x1f9024e926bf4350ab05e30fc6d1b1a552acf7ca386721b96312d220cabc96ff"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x75C93826\nfrom_name=NA\nto=0xF252C508\nto_name=Rainbow Poolboy\nvalue=35000000000000000\ninput_method=purchase\ninput_method_params=5\n\n5 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x75C93826\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=406\ntoken_name=Rainbow Poolboy\ntoken_type=ERC-721\ntoken_address=0xF252C508\n\n2) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x75C93826\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=407\ntoken_name=Rainbow Poolboy\ntoken_type=ERC-721\ntoken_address=0xF252C508\n\n3) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x75C93826\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=408\ntoken_name=Rainbow Poolboy\ntoken_type=ERC-721\ntoken_address=0xF252C508\n\n4) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x75C93826\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=409\ntoken_name=Rainbow Poolboy\ntoken_type=ERC-721\ntoken_address=0xF252C508\n\n5) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x75C93826\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=410\ntoken_name=Rainbow Poolboy\ntoken_type=ERC-721\ntoken_address=0xF252C508\n\n8 event logs:\n1) from=0xF252C508\nfrom_name=Rainbow Poolboy\nindex=406\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n2) from=0xF252C508\nfrom_name=Rainbow Poolboy\nindex=407\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n3) from=0xF252C508\nfrom_name=Rainbow Poolboy\nindex=408\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n4) from=0xF252C508\nfrom_name=Rainbow Poolboy\nindex=409\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n5) from=0xF252C508\nfrom_name=Rainbow Poolboy\nindex=410\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n6) from=0xd1d191D0\nfrom_name=NA\nindex=411\nmethod_name=NA\nmethod_id=3d0ce9bf\nmethod_params=NA\n\n7) from=0xF252C508\nfrom_name=Rainbow Poolboy\nindex=412\nmethod_name=NA\nmethod_id=6f8da53c\nmethod_params=NA\n\n8) from=0xF252C508\nfrom_name=Rainbow Poolboy\nindex=413\nmethod_name=NA\nmethod_id=4e26b035\nmethod_params=NA\n\n",
+    "output": "Mint 5 of 0xf252c508",
+    "transactionHash":
+      "0x56504114dc596f08752a9a24ba2e12e626a059b4d4a98ff1a51fb64a9f03b449"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x26290A02\nfrom_name=NA\nto=0x00000803\nto_name=mint.fun !fundrop pass\nvalue=0\ninput_method=mint\ninput_method_params=0x00000000, NA\n\n1 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x26290A02\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=470\ntoken_name=mint.fun !fundrop pass\ntoken_type=ERC-721\ntoken_address=0x00000803\n\n1 event logs:\n1) from=0x00000803\nfrom_name=mint.fun !fundrop pass\nindex=470\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Mint 1 of 0x00000803",
+    "transactionHash":
+      "0xc137ce279d7ad7e4746b4799a8d62031e18120221167866e94d5a74db2cb979f"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x2a9db0e1\nfrom_name=NA\nto=0x00000803\nto_name=mint.fun !fundrop pass\nvalue=0\ninput_method=mint\ninput_method_params=0x00000000, NA\n\n1 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x2a9db0e1\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=471\ntoken_name=mint.fun !fundrop pass\ntoken_type=ERC-721\ntoken_address=0x00000803\n\n1 event logs:\n1) from=0x00000803\nfrom_name=mint.fun !fundrop pass\nindex=471\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Mint 1 of 0x00000803",
+    "transactionHash":
+      "0x24fc55b0721415a2a3273c3e35066a9c2c661f096503b89883ebf534190f347b"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0x6B9fcEDf\nfrom_name=NA\nto=0x932248bF\nto_name=Zerion DNA 1.0\nvalue=0\ninput_method=mint\ninput_method_params=NA\n\n1 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0x6B9fcEDf\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=475\ntoken_name=Zerion DNA 1.0\ntoken_type=ERC-721\ntoken_address=0x932248bF\n\n1 event logs:\n1) from=0x932248bF\nfrom_name=Zerion DNA 1.0\nindex=475\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Mint 1 of 0x932248bf",
+    "transactionHash":
+      "0xad4546a7ccbfe0f9be911d40f2b96f02c5766a655600bb36778ab40dad6cb4c9"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xBFd6ADeB\nfrom_name=NA\nto=0x00000803\nto_name=mint.fun !fundrop pass\nvalue=0\ninput_method=mint\ninput_method_params=0x00000000, NA\n\n1 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xBFd6ADeB\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=236\ntoken_name=mint.fun !fundrop pass\ntoken_type=ERC-721\ntoken_address=0x00000803\n\n1 event logs:\n1) from=0x00000803\nfrom_name=mint.fun !fundrop pass\nindex=236\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n",
+    "output": "Mint 1 of 0x00000803",
+    "transactionHash":
+      "0xb8ce4e245d6d9ce7f636808c2018204581ce3204b8ddf0794ebb1a76ccd4edd6"
+  },
+  {
+    "instruction":
+      "You are an expert in Ethereum blockchain. Summarize the transaction below into a one line summary.",
+    "input":
+      "Transaction details are:\nfrom=0xD331eFDC\nfrom_name=NA\nto=0x00004bf5\nto_name=NA\nvalue=0\ninput_method=NA\ninput_method_params=NA\n\n5 token tranfers:\n1) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xD331eFDC\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=251\ntoken_name=Web3 Protestors\ntoken_type=ERC-721\ntoken_address=0x7C818d7f\n\n2) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xD331eFDC\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=252\ntoken_name=Web3 Protestors\ntoken_type=ERC-721\ntoken_address=0x7C818d7f\n\n3) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xD331eFDC\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=253\ntoken_name=Web3 Protestors\ntoken_type=ERC-721\ntoken_address=0x7C818d7f\n\n4) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xD331eFDC\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=254\ntoken_name=Web3 Protestors\ntoken_type=ERC-721\ntoken_address=0x7C818d7f\n\n5) type=token_minting\nfrom=0x00000000\nfrom_name=NA\nto=0xD331eFDC\nto_name=NA\nvalue=0\ndecimal=0\nlog_index=255\ntoken_name=Web3 Protestors\ntoken_type=ERC-721\ntoken_address=0x7C818d7f\n\n6 event logs:\n1) from=0x7C818d7f\nfrom_name=Web3 Protestors\nindex=251\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n2) from=0x7C818d7f\nfrom_name=Web3 Protestors\nindex=252\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n3) from=0x7C818d7f\nfrom_name=Web3 Protestors\nindex=253\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n4) from=0x7C818d7f\nfrom_name=Web3 Protestors\nindex=254\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n5) from=0x7C818d7f\nfrom_name=Web3 Protestors\nindex=255\nmethod_name=NA\nmethod_id=ddf252ad\nmethod_params=NA\n\n6) from=0x00004bf5\nfrom_name=NA\nindex=256\nmethod_name=SeaDropMint\nmethod_id=e90cf9cc\nmethod_params=0x7c818d7f, 0xd331efdc, 0x0000a719, 0xd331efdc, 5, 0, 1000, 0\n\n",
+    "output": "Mint 5 of 0x7c818d7f",
+    "transactionHash":
+      "0x35957f1e2d7b7067f49a78705bc7328ba6e3ff0ec014dae9b54354decf08ff2b"
+  }
+]
