@@ -5,17 +5,17 @@ c = {};
 const BigNumber = require("bignumber.js");
 
 function convertToDecimal(value, decimal) {
-  if (!value) {
-    return 0;
-  }
+    if (!value) {
+        return 0;
+    }
 
-  if (!decimal) {
-    return value;
-  }
+    if (!decimal) {
+        return value;
+    }
 
-  return new BigNumber(value)
-    .dividedBy(new BigNumber(10).pow(decimal))
-    .toString();
+    return new BigNumber(value)
+        .dividedBy(new BigNumber(10).pow(decimal))
+        .toString();
 }
 
 function getMethodIdFromTopicsArray(topics) {
@@ -28,25 +28,25 @@ function getMethodParameters(methodParameters) {
         let parameter = methodParameters[index];
         if (parameter.type.includes("bytes")) {
             parameters.push("NA")
-        } else if(parameter.type === "address") {
+        } else if (parameter.type === "address") {
             parameters.push(getShortAddress(parameter.value))
         } else {
-            if(Array.isArray(parameter.value)){
+            if (Array.isArray(parameter.value)) {
                 let parametersArray = [];
-                for(let pIndex in parameter.value){
-                    if(String(parameter.value[pIndex]).startsWith("0x")){
-                        if(parameter.value[pIndex].length === 42){
+                for (let pIndex in parameter.value) {
+                    if (String(parameter.value[pIndex]).startsWith("0x")) {
+                        if (parameter.value[pIndex].length === 42) {
                             parametersArray.push(getShortAddress(parameter.value[pIndex]));
-                        }else{
+                        } else {
                             parametersArray.push("NA");
                         }
                     }
-                    else{
+                    else {
                         parametersArray.push(parameter.value[pIndex]);
                     }
                 }
                 parameters.push(parametersArray)
-            }else{
+            } else {
                 parameters.push(parameter.value);
             }
         }
@@ -54,18 +54,18 @@ function getMethodParameters(methodParameters) {
     return parameters.length > 0 ? parameters.join(", ") : "NA";
 }
 
-function getShortAddress(address){
-    if(address){
-        let startAdd = address.substring(0,6);
-        let endAdd = address.substring(address.length -4);
+function getShortAddress(address) {
+    if (address) {
+        let startAdd = address.substring(0, 6);
+        let endAdd = address.substring(address.length - 4);
         return (startAdd + endAdd).toLowerCase();
-    }else{
+    } else {
         return "NA";
     }
 }
 
 
-function formatOutput(arr, replaceEther){
+function formatOutput(arr, replaceEther) {
     let outputArr = [];
     for (var index in arr) {
         arrChunks = arr[index].replaceAll(",", "").split(" ");
@@ -75,11 +75,11 @@ function formatOutput(arr, replaceEther){
                 arrCleanChunks.push("[amount]");
                 continue;
             }*/
-            if(replaceEther && arrChunks[chunkIndex] === "Ether"){
+            if (replaceEther && arrChunks[chunkIndex] === "Ether") {
                 arrCleanChunks.push(getShortAddress("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"));
                 continue;
             }
-            if(/^0x/.test(arrChunks[chunkIndex])) {
+            if (/^0x/.test(arrChunks[chunkIndex])) {
                 arrCleanChunks.push(getShortAddress(arrChunks[chunkIndex]));
                 continue;
             }
@@ -90,16 +90,16 @@ function formatOutput(arr, replaceEther){
     return outputArr.join("\n");
 }
 
-function getTokenTransferValue(total){
-    if(total.token_id){
-        if(total.value){
+function getTokenTransferValue(total) {
+    if (total.token_id) {
+        if (total.value) {
             return `value=${convertToDecimal(total.value, total?.decimals)}\n` + `decimal=${total?.decimals || 0}\n`;
         }
-        else{
+        else {
             return "value=1\n" + `decimal=${total?.decimals || 0}\n`;
         }
     }
-    else{
+    else {
         return `value=${convertToDecimal(total.value, total.decimals)}\n` + `decimal=${total.decimals}\n`;
     }
 }
@@ -117,26 +117,26 @@ async function main() {
         input = JSON.parse(a[i].input);
         let shouldSkip = false;
         let replaceEther = false;
-        if(!input.event_logs.length){
+        if (!input.event_logs.length) {
             console.log("no event logs");
             continue;
         }
         for (j = 0; j < input.token_transfers.length; j++) {
             let token_transfer = input.token_transfers[j];
-            if(token_transfer.token?.type === "ERC-20" && !token_transfer.total.decimals){
+            if (token_transfer.token?.type === "ERC-20" && !token_transfer.total.decimals) {
                 shouldSkip = true;
                 console.log("no decimal in token transfer");
                 continue;
             }
         }
         for (j = 0; j < input.event_logs.length; j++) {
-           let event_log = input.event_logs[j];
-           if(!event_log.decoded){
+            let event_log = input.event_logs[j];
+            if (!event_log.decoded) {
                 shouldSkip = true;
                 continue;
-           }
+            }
         }
-        if(shouldSkip){
+        if (shouldSkip) {
             continue;
         }
 
@@ -155,7 +155,7 @@ async function main() {
             input_string += `${input.token_transfers.length} token tranfers:\n`;
             for (j = 0; j < input.token_transfers.length; j++) {
                 let token_transfer = input.token_transfers[j];
-                if(token_transfer.token?.name === "Wrapped Ether"){
+                if (token_transfer.token?.name === "Wrapped Ether") {
                     replaceEther = true;
                 }
                 input_string += `${j + 1}) ` +
@@ -202,9 +202,9 @@ async function main() {
         let contentLength = llamaTokenizer.default.encode(
             instruction + input_string + output
         )?.length;
-       
+
         if (contentLength > 2900) {
-            if(contentLength>max){
+            if (contentLength > max) {
                 max = contentLength;
             }
             console.log("contentLength is greater ", contentLength);
@@ -222,7 +222,7 @@ async function main() {
         b[count].instruction = instruction;
 
         b[count].input = input_string;
-       
+
         b[count].output = output;
 
         b[count].transactionHash = input.transactions.hash;
@@ -251,7 +251,7 @@ async function main() {
         transcationHashArray.push(finalOutput[i].transactionHash);
         delete finalOutput[i].transactionHash;
     }
-    console.log({ skipCount, percent: skipCount / a.length * 100})
+    console.log({ skipCount, percent: skipCount / a.length * 100 })
     fs.writeFileSync("alpaca_data.json", JSON.stringify(finalOutput));
     fs.writeFileSync("hashes.json", JSON.stringify(transcationHashArray));
 }

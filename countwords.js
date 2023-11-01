@@ -1,5 +1,5 @@
 fs = require("fs");
-a = require("./Datafiles/training_dataset_alpaca_data_2800_supportedTypes_multiline.json");
+a = require("./Datafiles/llama_inference_data_2800_supportedTypes_nontrained.json");
 
 function wordCount(str) {
   return str.split(" ").filter(n => {
