@@ -4,16 +4,25 @@
 # from accelerate import init_empty_weights, load_checkpoint_and_dispatch
 
 import fire
-import os
-import sys
+import json
 import time
 
 import torch
 from transformers import LlamaTokenizer
-
-from llama_recipes.inference.safety_utils import get_safety_checker
 from llama_recipes.inference.model_utils import load_model, load_peft_model
 
+PROMPT_DICT = {
+    "prompt_input": (
+        "Below is an instruction that describes a task, paired with an input that provides further context. "
+        "Write a response that appropriately completes the request.\n\n"
+        "### Instruction:\n{instruction}\n\n### Input:\n{input}\n\n### Response:"
+    ),
+    "prompt_no_input": (
+        "Below is an instruction that describes a task. "
+        "Write a response that appropriately completes the request.\n\n"
+        "### Instruction:\n{instruction}\n\n### Response:"
+    ),
+}
 
 def main(
     model_name,
@@ -30,25 +39,12 @@ def main(
     top_k: int=50, # [optional] The number of highest probability vocabulary tokens to keep for top-k-filtering.
     repetition_penalty: float=1.0, #The parameter for repetition penalty. 1.0 means no penalty.
     length_penalty: int=1, #[optional] Exponential penalty to the length that is used with beam-based generation. 
-    enable_azure_content_safety: bool=False, # Enable safety check with Azure content safety api
-    enable_sensitive_topics: bool=False, # Enable check for sensitive topics using AuditNLG APIs
-    enable_salesforce_content_safety: bool=True, # Enable safety check with Salesforce safety flan t5
     max_padding_length: int=None, # the max padding length to be used with tokenizer padding the prompts.
     use_fast_kernels: bool = False, # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
     **kwargs
 ):
-    if prompt_file is not None:
-        assert os.path.exists(
-            prompt_file
-        ), f"Provided Prompt file does not exist {prompt_file}"
-        with open(prompt_file, "r") as f:
-            user_prompt = "\n".join(f.readlines())
-    elif not sys.stdin.isatty():
-        user_prompt = "\n".join(sys.stdin.readlines())
-    else:
-        print("No user prompt provided. Exiting.")
-        sys.exit(1)
-    
+    data_prompts = json.load(open(prompt_file))
+
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
     torch.manual_seed(seed)
@@ -74,61 +70,57 @@ def main(
     tokenizer = LlamaTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     
-    safety_checker = get_safety_checker(enable_azure_content_safety,
-                                        enable_sensitive_topics,
-                                        enable_salesforce_content_safety,
-                                        )
+    results = []
+    stat_result = {"match": {}, "not_match": {}}
+    max,min,total = 0,100000,0
+    for data_prompt in data_prompts:
+        user_prompt=PROMPT_DICT["prompt_input"].format_map(data_prompt)
+        batch = tokenizer(user_prompt, return_tensors="pt")
+        batch = {k: v.to("cuda") for k, v in batch.items()}
 
-    # Safety check of the user prompt
-    safety_results = [check(user_prompt) for check in safety_checker]
-    are_safe = all([r[1] for r in safety_results])
-    if are_safe:
-        print("User prompt deemed safe.")
-        print(f"User prompt:\n{user_prompt}")
-    else:
-        print("User prompt deemed unsafe.")
-        for method, is_safe, report in safety_results:
-            if not is_safe:
-                print(method)
-                print(report)
-        print("Skipping the inference as the prompt is not safe.")
-        sys.exit(1)  # Exit the program with an error status
-        
-    batch = tokenizer(user_prompt, padding='max_length', truncation=True, max_length=max_padding_length, return_tensors="pt")
+        start = time.perf_counter()
+        with torch.no_grad():
+            outputs = model.generate(
+                **batch,
+                max_new_tokens=max_new_tokens,
+                do_sample=do_sample,
+                top_p=top_p,
+                temperature=temperature,
+                min_length=min_length,
+                use_cache=use_cache,
+                top_k=top_k,
+                repetition_penalty=repetition_penalty,
+                length_penalty=length_penalty,
+                **kwargs 
+            )
+        e2e_inference_time = (time.perf_counter()-start)*1000
+        output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        transaction_hash = data_prompt["transactionHash"]
+        expected_output = data_prompt["output"]
+        model_classification_response = output_text.split("### Response:")[1].strip()
+        results.append([transaction_hash,expected_output, model_classification_response])
+        print(f"({e2e_inference_time} ms) {transaction_hash} expected_response:{expected_output} model_classification_response:{model_classification_response}")
+        if e2e_inference_time > max:
+            max = e2e_inference_time
+        elif e2e_inference_time < min:
+            min = e2e_inference_time
+        total += e2e_inference_time
+        if expected_output == model_classification_response:
+            stat_result["match"][expected_output] = stat_result["match"].get(expected_output, 0) + 1
+        else:
+            print(f"==============Not Matched =======================")
+            stat_result["not_match"][expected_output] = stat_result["not_match"].get(expected_output, 0) + 1    
+        print(f"stat_result: {stat_result}\n\n")    
+            
+    print("========================Script Complete Result====================== \n\n")
+    avg = total / len(data_prompts)
+    print("max_time: ",{max},"s, min_time: ",{min},"s, avg_time:",{avg},"s, total_time: ",{total},"s")
+    for result in results:    
+        print(",".join(result)) 
 
-    batch = {k: v.to("cuda") for k, v in batch.items()}
-    start = time.perf_counter()
-    with torch.no_grad():
-        outputs = model.generate(
-            **batch,
-            max_new_tokens=max_new_tokens,
-            do_sample=do_sample,
-            top_p=top_p,
-            temperature=temperature,
-            min_length=min_length,
-            use_cache=use_cache,
-            top_k=top_k,
-            repetition_penalty=repetition_penalty,
-            length_penalty=length_penalty,
-            **kwargs 
-        )
-    e2e_inference_time = (time.perf_counter()-start)*1000
-    print(f"the inference time is {e2e_inference_time} ms")
-    output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
-    # Safety check of the model output
-    safety_results = [check(output_text) for check in safety_checker]
-    are_safe = all([r[1] for r in safety_results])
-    if are_safe:
-        print("User input and model output deemed safe.")
-        print(f"Model output:\n{output_text}")
-    else:
-        print("Model output deemed unsafe.")
-        for method, is_safe, report in safety_results:
-            if not is_safe:
-                print(method)
-                print(report)
-                
+
+
 
 if __name__ == "__main__":
     fire.Fire(main)
