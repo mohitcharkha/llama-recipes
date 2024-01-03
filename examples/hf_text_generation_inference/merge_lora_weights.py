@@ -4,14 +4,14 @@
 import fire
 import torch
 from peft import PeftModel
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import MistralForCausalLM, AutoTokenizer
 
 
 def main(base_model: str,
          peft_model: str,
          output_dir: str):
         
-    model = AutoModelForCausalLM.from_pretrained(
+    model = MistralForCausalLM.from_pretrained(
         base_model,
         load_in_8bit=False,
         torch_dtype=torch.float16,

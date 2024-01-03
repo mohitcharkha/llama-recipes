@@ -16,7 +16,7 @@ from torch.distributed.fsdp import (
 from torch.distributed.fsdp.fully_sharded_data_parallel import CPUOffload
 from torch.optim.lr_scheduler import StepLR
 from transformers import (
-    AutoModelForCausalLM,
+    MistralForCausalLM,
     MistralConfig,
     AutoTokenizer,
 )
@@ -89,7 +89,7 @@ def main(**kwargs):
             raise Exception("latest pytorch nightly build is required to run with low_cpu_fsdp config, "
                             "please install latest nightly.")
         if rank == 0:
-            model = AutoModelForCausalLM.from_pretrained(
+            model = MistralForCausalLM.from_pretrained(
                 train_config.model_name,
                 load_in_8bit=True if train_config.quantization else None,
                 device_map="auto" if train_config.quantization else None,
@@ -99,10 +99,10 @@ def main(**kwargs):
             mistral_config = MistralConfig.from_pretrained(train_config.model_name)
             mistral_config.use_cache = use_cache
             with torch.device("meta"):
-                model = AutoModelForCausalLM(mistral_config)
+                model = MistralForCausalLM(mistral_config)
 
     else:
-        model = AutoModelForCausalLM.from_pretrained(
+        model = MistralForCausalLM.from_pretrained(
             train_config.model_name,
             load_in_8bit=True if train_config.quantization else None,
             device_map="auto" if train_config.quantization else None,
