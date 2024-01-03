@@ -4,14 +4,14 @@
 import fire
 import torch
 from peft import PeftModel
-from transformers import LlamaForCausalLM, LlamaTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 def main(base_model: str,
          peft_model: str,
          output_dir: str):
         
-    model = LlamaForCausalLM.from_pretrained(
+    model = AutoModelForCausalLM.from_pretrained(
         base_model,
         load_in_8bit=False,
         torch_dtype=torch.float16,
@@ -19,7 +19,7 @@ def main(base_model: str,
         offload_folder="tmp", 
     )
     
-    tokenizer = LlamaTokenizer.from_pretrained(
+    tokenizer = AutoTokenizer.from_pretrained(
         base_model
     )
         
