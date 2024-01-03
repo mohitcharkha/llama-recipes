@@ -4,6 +4,8 @@
 import functools
 
 from transformers.models.llama.modeling_llama import LlamaDecoderLayer
+from transformers.models.mistral.modeling_mistral import MistralDecoderLayer
+
 from torch.distributed.fsdp.wrap import (
     transformer_auto_wrap_policy,
     size_based_auto_wrap_policy,
@@ -31,3 +33,18 @@ def get_llama_wrapper():
     )
 
     return llama_auto_wrap_policy
+
+def get_mistral_wrapper():
+    """we register our main layer class and use the fsdp transformer wrapping policy
+    ensures embedding layers are in the root fsdp unit for shared access and that fsdp units map to transformer layers
+    """
+    # ====   use new transformer wrapper
+
+    mistral_auto_wrap_policy = functools.partial(
+        transformer_auto_wrap_policy,
+        transformer_layer_cls={
+            MistralDecoderLayer,
+        },
+    )
+
+    return mistral_auto_wrap_policy

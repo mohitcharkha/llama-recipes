@@ -1,6 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
 
+import wandb
 import os
 from pkg_resources import packaging
 
@@ -15,11 +16,11 @@ from torch.distributed.fsdp import (
 from torch.distributed.fsdp.fully_sharded_data_parallel import CPUOffload
 from torch.optim.lr_scheduler import StepLR
 from transformers import (
-    LlamaForCausalLM,
-    LlamaTokenizer,
-    LlamaConfig,
+    AutoModelForCausalLM,
+    MistralConfig,
+    AutoTokenizer,
 )
-from transformers.models.llama.modeling_llama import LlamaDecoderLayer
+from transformers.models.mistral.modeling_mistral import MistralDecoderLayer
 
 from llama_recipes.configs import fsdp_config as FSDP_CONFIG
 from llama_recipes.configs import train_config as TRAIN_CONFIG
@@ -51,6 +52,11 @@ def main(**kwargs):
     train_config, fsdp_config = TRAIN_CONFIG(), FSDP_CONFIG()
     update_config((train_config, fsdp_config), **kwargs)
 
+    project = kwargs.get("project", "default_project_name")
+    name = kwargs.get("name", "default_experiment_name")
+
+    # Initialize Wandb change the project name and experiment name as per your requirement
+    wandb.init(project= project, name= name, config={**vars(train_config)})
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(train_config.seed)
     torch.manual_seed(train_config.seed)
@@ -83,20 +89,20 @@ def main(**kwargs):
             raise Exception("latest pytorch nightly build is required to run with low_cpu_fsdp config, "
                             "please install latest nightly.")
         if rank == 0:
-            model = LlamaForCausalLM.from_pretrained(
+            model = AutoModelForCausalLM.from_pretrained(
                 train_config.model_name,
                 load_in_8bit=True if train_config.quantization else None,
                 device_map="auto" if train_config.quantization else None,
                 use_cache=use_cache,
             )
         else:
-            llama_config = LlamaConfig.from_pretrained(train_config.model_name)
-            llama_config.use_cache = use_cache
+            mistral_config = MistralConfig.from_pretrained(train_config.model_name)
+            mistral_config.use_cache = use_cache
             with torch.device("meta"):
-                model = LlamaForCausalLM(llama_config)
+                model = AutoModelForCausalLM(mistral_config)
 
     else:
-        model = LlamaForCausalLM.from_pretrained(
+        model = AutoModelForCausalLM.from_pretrained(
             train_config.model_name,
             load_in_8bit=True if train_config.quantization else None,
             device_map="auto" if train_config.quantization else None,
@@ -115,7 +121,7 @@ def main(**kwargs):
             print("Module 'optimum' not found. Please install 'optimum' it before proceeding.")
 
     # Load the tokenizer and add special tokens
-    tokenizer = LlamaTokenizer.from_pretrained(train_config.model_name)
+    tokenizer = AutoTokenizer.from_pretrained(train_config.model_name)
     tokenizer.pad_token_id = tokenizer.eos_token_id
 
     print_model_size(model, train_config, rank if train_config.enable_fsdp else 0)
@@ -140,7 +146,7 @@ def main(**kwargs):
             freeze_transformer_layers(train_config.num_freeze_layers)
 
         mixed_precision_policy, wrapping_policy = get_policies(fsdp_config, rank)
-        my_auto_wrapping_policy = fsdp_auto_wrap_policy(model, LlamaDecoderLayer)
+        my_auto_wrapping_policy = fsdp_auto_wrap_policy(model, MistralDecoderLayer)
 
         model = FSDP(
             model,

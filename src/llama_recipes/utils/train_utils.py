@@ -1,6 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
 
+import wandb
 import os
 import time
 import yaml
@@ -15,15 +16,15 @@ import torch.distributed as dist
 from torch.distributed.fsdp import StateDictType
 from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
 from tqdm import tqdm
-from transformers import LlamaTokenizer
+from transformers import AutoTokenizer
 
 
 from llama_recipes.model_checkpointing import save_model_checkpoint, save_model_and_optimizer_sharded, save_optimizer_checkpoint
-from llama_recipes.policies import fpSixteen,bfSixteen_mixed, get_llama_wrapper
+from llama_recipes.policies import fpSixteen,bfSixteen_mixed, get_mistral_wrapper
 from llama_recipes.utils.memory_utils import MemoryTrace
 
 
-def set_tokenizer_params(tokenizer: LlamaTokenizer):
+def set_tokenizer_params(tokenizer: AutoTokenizer):
     tokenizer.pad_token_id = 0
     tokenizer.padding_side = "left"
 
@@ -144,12 +145,12 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                             print(f"we are about to save the PEFT modules")
                     else:
                         print(f"we are about to save the PEFT modules")
-                    model.save_pretrained(train_config.output_dir)
+                    model.save_pretrained(f"{train_config.output_dir}/epoch_{epoch+1}")
                     if train_config.enable_fsdp:
                         if rank==0:
-                            print(f"PEFT modules are saved in {train_config.output_dir} directory")
+                            print(f"PEFT modules are saved in {train_config.output_dir}/epoch_{epoch+1} directory")
                     else:
-                        print(f"PEFT modules are saved in {train_config.output_dir} directory")
+                        print(f"PEFT modules are saved in {train_config.output_dir}/epoch_{epoch+1} directory")
 
                 else:
                     if not train_config.use_peft and fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
@@ -191,6 +192,11 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                 print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
         else:
             print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
+        # Log metrics from your script to W&B
+        wandb.log({"training_loss": train_epoch_loss, "validation_loss": eval_epoch_loss, "training_perplexity": train_perplexity, "validation_perplexity": eval_ppl})
+    # Mark the run as finished
+    wandb.finish()
+    
     avg_epoch_time = sum(epoch_times)/ len(epoch_times)
     avg_checkpoint_time = sum(checkpoint_times)/ len(checkpoint_times) if len(checkpoint_times) > 0 else 0
     avg_train_prep = sum(train_prep)/len(train_prep)
@@ -365,7 +371,7 @@ def get_policies(cfg, rank):
                 print(f"FP16 enabled")
         else:
             print(f"bFloat16 support not present. Using FP32, and not mixed precision")
-    wrapping_policy = get_llama_wrapper()
+    wrapping_policy = get_mistral_wrapper()
     return mixed_precision_policy, wrapping_policy
 
 def save_train_params(train_config, fsdp_config, rank):
